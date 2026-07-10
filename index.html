@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Đánh giá tác động QĐ 1132/QĐ-TTg — VNPT-IT</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --blue-dark:#00294D;
+  --blue:#0067B1;
+  --blue-mid:#0B7FCB;
+  --blue-light:#E8F2FA;
+  --orange:#F7941E;
+  --bg:#F2F5F8;
+  --card:#FFFFFF;
+  --line:#E1E7EE;
+  --text:#16232F;
+  --muted:#66788C;
+  --rc:#D6455A;
+  --cao:#F0983F;
+  --tb:#E8B93A;
+  --thap:#8FA0B3;
+  --na:#C7D0DA;
+  --radius:14px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Be Vietnam Pro',-apple-system,Segoe UI,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  -webkit-font-smoothing:antialiased;
+}
+.app{max-width:1360px;margin:0 auto;padding:20px 24px 60px;}
+
+/* HEADER */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  background:linear-gradient(120deg,var(--blue-dark) 0%,var(--blue) 62%,var(--blue-mid) 100%);
+  border-radius:var(--radius);
+  padding:22px 28px;
+  color:#fff;
+  margin-bottom:18px;
+  position:relative;
+  overflow:hidden;
+}
+.header::after{
+  content:"";position:absolute;right:-40px;top:-60px;width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(247,148,30,.35),transparent 70%);
+}
+.header-left .eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--orange);font-weight:600;margin-bottom:6px;
+}
+.header-left h1{margin:0;font-size:23px;font-weight:800;letter-spacing:-.01em;}
+.header-left p{margin:6px 0 0;font-size:13px;color:#CFE3F4;max-width:640px;line-height:1.5;}
+.header-right{text-align:right;font-size:12px;color:#CFE3F4;position:relative;z-index:1;}
+.header-right .badge-org{
+  display:inline-block;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);
+  padding:4px 12px;border-radius:20px;font-weight:600;font-size:12px;margin-bottom:6px;
+}
+
+/* SIGNATURE STRIP */
+.strip-wrap{background:var(--card);border-radius:var(--radius);border:1px solid var(--line);padding:16px 20px 14px;margin-bottom:18px;}
+.strip-title{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.strip-title .legend{display:flex;gap:14px;font-weight:500;}
+.legend span{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted);}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block;}
+.strip{display:flex;gap:2px;flex-wrap:wrap;}
+.strip .cell{width:11px;height:22px;border-radius:2px;cursor:pointer;transition:transform .12s;}
+.strip .cell:hover{transform:scaleY(1.25);}
+
+/* TABS */
+.tab-nav{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:0;}
+.tab-btn{
+  border:none;background:transparent;padding:11px 18px;font-family:inherit;font-size:14px;font-weight:600;
+  color:var(--muted);cursor:pointer;border-radius:10px 10px 0 0;position:relative;top:1px;
+  display:flex;align-items:center;gap:8px;
+}
+.tab-btn .count{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;background:var(--bg);color:var(--muted);
+  padding:1px 7px;border-radius:20px;font-weight:600;
+}
+.tab-btn.active{color:var(--blue-dark);border-bottom:3px solid var(--orange);}
+.tab-btn.active .count{background:var(--orange);color:#fff;}
+.tab-panel{display:none;animation:fade .25s ease;}
+.tab-panel.active{display:block;}
+@keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+/* KPI CARDS */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:18px;}
+.kpi-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;}
+.kpi-card .num{font-family:'IBM Plex Mono',monospace;font-size:28px;font-weight:600;color:var(--blue-dark);line-height:1;}
+.kpi-card .lbl{font-size:12.5px;color:var(--muted);margin-top:8px;font-weight:500;line-height:1.4;}
+.kpi-card.accent-rc .num{color:var(--rc);}
+.kpi-card.accent-cao .num{color:var(--cao);}
+.kpi-card.accent-orange .num{color:var(--orange);}
+.kpi-card.accent-muted .num{color:var(--muted);}
+
+/* CHART GRID */
+.grid-2{display:grid;grid-template-columns:1.1fr .9fr;gap:14px;margin-bottom:14px;}
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;}
+.chart-card h3{margin:0 0 3px;font-size:14.5px;font-weight:700;}
+.chart-card .sub{font-size:12px;color:var(--muted);margin-bottom:12px;}
+.chart-card canvas{max-height:280px;}
+.chart-card.tall canvas{max-height:360px;}
+
+/* INSIGHT BOX */
+.insight{
+  background:var(--blue-light);border:1px solid #CFE3F4;border-radius:var(--radius);
+  padding:16px 20px;margin:14px 0;font-size:13.5px;line-height:1.65;color:var(--blue-dark);
+}
+.insight b{color:var(--blue-dark);}
+.insight .tag{
+  display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.08em;
+  background:var(--blue);color:#fff;padding:2px 9px;border-radius:20px;margin-bottom:8px;text-transform:uppercase;font-weight:600;
+}
+
+/* PRIORITY DETAIL CARDS */
+.card-list{display:flex;flex-direction:column;gap:12px;}
+.pcard{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--muted);border-radius:12px;padding:16px 20px;}
+.pcard.rc{border-left-color:var(--rc);}
+.pcard.cao{border-left-color:var(--cao);}
+.pcard.tb{border-left-color:var(--tb);}
+.pcard.thap{border-left-color:var(--thap);}
+.pcard-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:10px;}
+.pcard-head h4{margin:0;font-size:15.5px;font-weight:700;color:var(--blue-dark);}
+.meta-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.chip{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:var(--bg);color:var(--muted);border:1px solid var(--line);}
+.chip.unit{background:var(--blue-light);color:var(--blue);border-color:#CFE3F4;}
+.chip.nhom{background:#F5EEDC;color:#8A6D00;border-color:#EADFB8;}
+.pcard-body{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px;}
+.pcard-block h5{margin:0 0 5px;font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:700;}
+.pcard-block p{margin:0;font-size:13px;line-height:1.6;color:var(--text);white-space:pre-line;}
+@media(max-width:820px){.pcard-body{grid-template-columns:1fr;}}
+
+/* FILTER BAR */
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;background:var(--card);border:1px solid var(--line);padding:12px 14px;border-radius:12px;}
+.filter-bar select,.filter-bar input[type=text]{
+  font-family:inherit;font-size:13px;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--text);
+}
+.filter-bar label.chk{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);font-weight:500;}
+.filter-count{margin-left:auto;font-size:12px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+
+/* TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{
+  text-align:left;background:var(--blue-dark);color:#fff;padding:10px 12px;font-weight:600;font-size:11.5px;
+  text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;
+}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+tbody tr:hover{background:var(--blue-light);}
+tbody tr:last-child td{border-bottom:none;}
+.badge-pri{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;color:#fff;white-space:nowrap;}
+.badge-pri.rc{background:var(--rc);}
+.badge-pri.cao{background:var(--cao);}
+.badge-pri.tb{background:var(--tb);color:#5C4600;}
+.badge-pri.thap{background:var(--thap);}
+.badge-pri.na{background:var(--na);color:#48566B;}
+.row-detail{background:#FAFCFE;}
+.row-detail td{padding:14px 22px;font-size:13px;line-height:1.6;}
+.expand-btn{cursor:pointer;color:var(--blue);font-weight:600;font-size:12px;user-select:none;}
+.expand-btn:hover{text-decoration:underline;}
+
+/* UNIT ACCOUNTABILITY */
+.unit-grid{display:grid;grid-template-columns:1fr;gap:16px;}
+.unit-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;}
+.unit-card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.unit-card-head h4{margin:0;font-size:16px;font-weight:800;color:var(--blue-dark);}
+.unit-card-head .total{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--muted);font-size:12.5px;}
+.mini-bar{display:flex;height:9px;border-radius:6px;overflow:hidden;margin-bottom:10px;background:var(--bg);}
+.mini-bar div{height:100%;}
+.unit-stats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.stat-chip{flex:1;min-width:58px;text-align:center;border-radius:8px;padding:6px 4px;background:var(--bg);}
+.stat-chip .n{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:15px;line-height:1.1;}
+.stat-chip .l{font-size:9.5px;color:var(--muted);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.02em;}
+.unit-group-label{
+  font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+  margin:10px 0 5px;padding-top:6px;border-top:1px dashed var(--line);display:flex;align-items:center;gap:6px;
+}
+.unit-group-label:first-child{margin-top:0;border-top:none;padding-top:0;}
+.unit-group-label i{width:8px;height:8px;border-radius:2px;display:inline-block;}
+.chip.deadline{background:var(--bg);color:var(--muted);white-space:nowrap;}
+.chip.deadline.urgent{background:#FBEAEA;color:var(--rc);border-color:#F3C7CC;font-weight:700;}
+.urgent-note{
+  background:#FBEAEA;color:#A0303F;border:1px solid #F3C7CC;border-radius:8px;
+  padding:7px 10px;font-size:12px;font-weight:600;margin-bottom:10px;
+}
+.focus-box{
+  background:linear-gradient(135deg,#00294D,#0067B1);color:#fff;border-radius:10px;
+  padding:12px 14px;margin-bottom:12px;
+}
+.focus-title{font-size:12px;font-weight:700;margin-bottom:6px;letter-spacing:.02em;}
+.focus-box ul{margin:0;padding-left:18px;}
+.focus-box li{font-size:12px;line-height:1.55;color:#E4EEF7;margin-bottom:3px;}
+.focus-box li b{color:#fff;}
+.unit-list{display:flex;flex-direction:column;gap:10px;}
+
+.unit-item-full{background:var(--bg);border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:10px;padding:12px 16px;}
+.uif-head{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.uif-head h5{margin:0;font-size:14px;font-weight:700;color:var(--blue-dark);}
+.uif-chips{display:flex;gap:6px;flex-wrap:wrap;}
+.uif-body{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.uif-body h6{margin:0 0 4px;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700;}
+.uif-body p{margin:0;font-size:12.5px;line-height:1.6;color:var(--text);white-space:pre-line;}
+@media(max-width:760px){.uif-body{grid-template-columns:1fr;}}
+.unit-item{font-size:12.5px;padding:7px 9px;border-radius:8px;background:var(--bg);border:1px solid var(--line);cursor:pointer;}
+.unit-item:hover{background:var(--blue-light);}
+.unit-item .row1{display:flex;justify-content:space-between;gap:8px;align-items:center;}
+.unit-item .name{font-weight:600;color:var(--text);}
+.unit-item .detail{display:none;margin-top:6px;font-size:12px;color:var(--muted);line-height:1.5;border-top:1px dashed var(--line);padding-top:6px;}
+.unit-item.open .detail{display:block;}
+.unit-list::-webkit-scrollbar{width:6px;}
+.unit-list::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;}
+
+/* footer summary */
+.summary-box{background:var(--blue-dark);color:#fff;border-radius:var(--radius);padding:22px 26px;margin-top:22px;}
+.summary-box h3{margin:0 0 12px;font-size:16px;display:flex;align-items:center;gap:8px;}
+.summary-box h3::before{content:"◆";color:var(--orange);}
+.summary-box ul{margin:0;padding-left:20px;line-height:1.8;font-size:13.5px;color:#E4EEF7;}
+.summary-box li b{color:#fff;}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
+@media(max-width:880px){.summary-grid{grid-template-columns:1fr;}.kpi-grid{grid-template-columns:repeat(2,1fr);}.grid-2{grid-template-columns:1fr;}}
+
+.note{font-size:11.5px;color:var(--muted);margin-top:8px;font-style:italic;}
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="header-left">
+      <div class="eyebrow">VNPT-IT · Ban Chiến lược sản phẩm</div>
+      <h1>Ma trận đánh giá tác động Quyết định 1132/QĐ-TTg</h1>
+      <p>79 nền tảng số dùng chung quốc gia — rà soát ảnh hưởng tới danh mục sản phẩm/dịch vụ VNPT-IT và phân công trách nhiệm theo dõi, hành động.</p>
+    </div>
+    <div class="header-right">
+      <div class="badge-org">Nội bộ · Báo cáo chiến lược</div><br/>
+      Cập nhật dữ liệu: 09/7/2026
+    </div>
+  </div>
+
+  <div class="strip-wrap">
+    <div class="strip-title">
+      <span>Bản đồ 79 nền tảng theo mức ưu tiên (di chuột để xem tên nền tảng)</span>
+      <span class="legend">
+        <span><i style="background:#D6455A"></i>Rất cao</span>
+        <span><i style="background:#F0983F"></i>Cao</span>
+        <span><i style="background:#E8B93A"></i>Trung bình</span>
+        <span><i style="background:#8FA0B3"></i>Thấp</span>
+        <span><i style="background:#C7D0DA"></i>Không áp dụng</span>
+      </span>
+    </div>
+    <div class="strip" id="strip"></div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="tong-quan">📊 Tổng quan</button>
+    <button class="tab-btn" data-tab="rat-cao">🔴 Rất cao <span class="count">6</span></button>
+    <button class="tab-btn" data-tab="cao">🟠 Cao <span class="count">8</span></button>
+    <button class="tab-btn" data-tab="trung-binh">🟡 Trung bình <span class="count">23</span></button>
+    <button class="tab-btn" data-tab="thap">⚪ Thấp <span class="count">7</span></button>
+    <button class="tab-btn" data-tab="don-vi">🏢 Trách nhiệm đơn vị</button>
+    <button class="tab-btn" data-tab="hoan-thanh-2026">📅 Hoàn thành 2026 <span class="count">26</span></button>
+  </div>
+
+  <!-- ===================== TAB: TỔNG QUAN ===================== -->
+  <div class="tab-panel active" id="tab-tong-quan">
+    <div class="kpi-grid">
+      <div class="kpi-card"><div class="num" id="kpi-total"></div><div class="lbl">Tổng số nền tảng dùng chung theo QĐ 1132</div></div>
+      <div class="kpi-card"><div class="num" id="kpi-a"></div><div class="lbl">Nhóm A — nền tảng liên ngành/liên lĩnh vực</div></div>
+      <div class="kpi-card"><div class="num" id="kpi-b"></div><div class="lbl">Nhóm B — nền tảng chuyên ngành/lĩnh vực</div></div>
+      <div class="kpi-card accent-orange"><div class="num" id="kpi-theo-doi"></div><div class="lbl">Có SPDV VNPT liên quan — cần theo dõi</div></div>
+      <div class="kpi-card accent-rc"><div class="num" id="kpi-rc"></div><div class="lbl">Ưu tiên Rất cao — cần rà soát ngay</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="chart-card">
+        <h3>Phân bổ mức ưu tiên theo Nhóm A/B</h3>
+        <div class="sub">So sánh số lượng nền tảng liên ngành (A) và chuyên ngành (B) tại từng mức ưu tiên</div>
+        <canvas id="chartPriNhom"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Phạm vi tác động thực tế</h3>
+        <div class="sub">Tỷ lệ nền tảng có SPDV VNPT liên quan so với nền tảng chưa áp dụng</div>
+        <canvas id="chartScope"></canvas>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="chart-card">
+        <h3>Khối lượng theo Đơn vị phụ trách nội bộ</h3>
+        <div class="sub">Số nền tảng mỗi Trung tâm/Đơn vị VNPT-IT cần rà soát</div>
+        <canvas id="chartUnit"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Áp lực từ Cơ quan chủ quản (Top 12)</h3>
+        <div class="sub">Bộ/ngành ban hành nhiều nền tảng dùng chung nhất</div>
+        <canvas id="chartCoQuan"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:14px;">
+      <h3>Áp lực thời gian vận hành</h3>
+      <div class="sub">Số nền tảng theo mốc thời gian bắt đầu vận hành — cho thấy mức độ dồn deadline</div>
+      <canvas id="chartTime"></canvas>
+    </div>
+
+    <div class="summary-box">
+      <h3>Tổng hợp đánh giá chiến lược</h3>
+      <div class="summary-grid">
+        <ul>
+          <li><b>56% phạm vi cần hành động:</b> 44/79 nền tảng (nhóm A: 17, nhóm B: 62) có SPDV VNPT liên quan trực tiếp và cần rà soát; 35 nền tảng còn lại VNPT chưa tham gia — là vùng trắng cần Ban Chiến lược sản phẩm đánh giá cơ hội mới, không phải rủi ro.</li>
+          <li><b>Áp lực thời gian rất gấp:</b> 40/79 nền tảng (51%) bắt đầu vận hành ngay trong <b>Năm 2026</b>, đòi hỏi rà soát và điều chỉnh SPDV phải hoàn thành trong 2026, không thể chờ lộ trình dài hạn.</li>
+          <li><b>DAS là đơn vị chịu tải lớn nhất:</b> được giao 15 nền tảng, trong đó 14/44 nền tảng cần theo dõi thực chất (32%), gồm 2/6 mục Rất cao và 8 mục phải xong ngay trong 2026 — cần ưu tiên phân bổ nguồn lực rà soát cho đơn vị này trước, tiếp theo là DGS (7) và GEO/MDS (5 mỗi đơn vị).</li>
+        </ul>
+        <ul>
+          <li><b>3 cơ quan chủ quản cần theo dõi sát:</b> Bộ Công an (14 nền tảng, chủ yếu Nhóm A nền tảng lõi quốc gia), Bộ Tài chính (11) và Thanh tra Chính phủ (6, toàn bộ là dự án do DAS chủ trì) — đây là 3 đầu mối chính sách ảnh hưởng nhiều nhất tới danh mục SPDV.</li>
+          <li><b>6 nền tảng Rất cao trải đều 4 đơn vị</b> (DAS×2, DGS×2, SI, NNS) — không tập trung vào 1 đơn vị, nghĩa là cần cơ chế điều phối liên đơn vị (Ban KDGP/Ban Chiến lược sản phẩm) thay vì giao khoán riêng lẻ.</li>
+          <li><b>Cập nhật theo bảng rà soát mới nhất (79 nền tảng QĐ 1132):</b> nhóm Thấp tăng từ 4 lên 7 nền tảng do 3 nền tảng AI của GEO (ứng phó biến đổi khí hậu, bảo vệ môi trường, cảnh báo thiên tai) được đưa vào diện theo dõi thay vì "Không áp dụng"; Trợ lý ảo quốc gia chuyển sang mức Trung bình (do Công ty AI triển khai — đơn vị ngoài phạm vi các Trung tâm/Ban VNPT-IT nên không tính vào khối lượng theo đơn vị) — nhóm Trung bình theo đó tăng nhẹ lên 23 nền tảng, nhóm "Không áp dụng" còn 35.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== TAB: RẤT CAO ===================== -->
+  <div class="tab-panel" id="tab-rat-cao">
+    <div class="insight"><span class="tag">Hành động ngay</span><br/>
+      6 nền tảng dưới đây có ảnh hưởng trực tiếp và rõ ràng nhất tới doanh thu/danh mục SPDV hiện hữu của VNPT-IT (VNPT iGate, hồ sơ CCVC, HĐLĐĐT, LGSP, Data Lakehouse...). Đề xuất Ban Chiến lược sản phẩm đưa vào cuộc họp giao ban gần nhất.
+    </div>
+    <div class="card-list" id="cards-rc"></div>
+  </div>
+
+  <!-- ===================== TAB: CAO ===================== -->
+  <div class="tab-panel" id="tab-cao">
+    <div class="insight"><span class="tag">Chuẩn bị phương án</span><br/>
+      8 nền tảng cần chuẩn bị phương án kỹ thuật/chính sách trong 2026, chưa cấp bách bằng nhóm Rất cao nhưng có tính chất nền tảng lõi (VNeID, định danh điện tử, Cloud quốc gia, blockchain quốc gia, Sổ sức khoẻ điện tử...).
+    </div>
+    <div class="card-list" id="cards-cao"></div>
+  </div>
+
+  <!-- ===================== TAB: TRUNG BÌNH ===================== -->
+  <div class="tab-panel" id="tab-trung-binh">
+    <div class="insight"><span class="tag">Theo dõi định kỳ</span><br/>
+      Nhóm này có <b>23 nền tảng</b>, toàn bộ đều có SPDV VNPT liên quan trực tiếp và cần theo dõi thực chất — dữ liệu đã được làm sạch, không còn hệ thống "không do VNPT triển khai" bị gắn nhầm mức Trung bình (các hệ thống TTHC của bộ/ngành khác và 2 nền tảng dân tộc/tôn giáo đã được chuyển đúng về "Không áp dụng"). Dùng bộ lọc bên dưới để tra cứu theo Nhóm/Cơ quan/Đơn vị.
+    </div>
+    <div class="filter-bar">
+      <select id="f-nhom"><option value="">Tất cả Nhóm</option><option value="A">Nhóm A</option><option value="B">Nhóm B</option></select>
+      <select id="f-coquan"><option value="">Tất cả Cơ quan chủ quản</option></select>
+      <select id="f-donvi"><option value="">Tất cả Đơn vị phụ trách</option></select>
+      <input type="text" id="f-search" placeholder="Tìm theo tên nền tảng...">
+      <label class="chk"><input type="checkbox" id="f-hide-novnpt"> Chỉ hiện nền tảng cần theo dõi (ẩn "không do VNPT")</label>
+      <span class="filter-count" id="tb-count"></span>
+    </div>
+    <div class="table-wrap"><div id="table-tb"></div></div>
+    <div class="note">Nhấp vào một dòng để xem chi tiết Phân tích ảnh hưởng và Đề xuất hành động.</div>
+  </div>
+
+  <!-- ===================== TAB: THẤP ===================== -->
+  <div class="tab-panel" id="tab-thap">
+    <div class="insight"><span class="tag">Giám sát định kỳ</span><br/>
+      7 nền tảng có lộ trình xa (2028–2030) hoặc mức độ ưu tiên thấp hơn do VNPT chưa có SPDV cạnh tranh trực tiếp/nhu cầu đặc thù chưa rõ — trong đó có 3 nền tảng AI của GEO (ứng phó biến đổi khí hậu, bảo vệ môi trường, cảnh báo thiên tai) mới được đưa vào diện theo dõi. Chỉ cần theo dõi định kỳ, chưa cần phân bổ nguồn lực rà soát ngay.
+    </div>
+    <div class="table-wrap" id="table-thap"></div>
+  </div>
+
+  <!-- ===================== TAB: TRÁCH NHIỆM ĐƠN VỊ ===================== -->
+  <div class="tab-panel" id="tab-don-vi">
+    <div class="insight"><span class="tag">Ma trận trách nhiệm</span><br/>
+      Tổng hợp theo từng Đơn vị/Trung tâm phụ trách kỹ thuật của VNPT-IT — mỗi thẻ hiển thị số nền tảng liên quan, thanh phân bổ mức ưu tiên, và danh sách nền tảng kèm đề xuất hành động cụ thể (nhấp để mở rộng). Dữ liệu lấy từ cột "Đơn vị phụ trách" trong file gốc.
+    </div>
+
+    <div class="grid-2" style="grid-template-columns:.85fr 1.15fr;margin-bottom:14px;">
+      <div class="chart-card tall">
+        <h3>Số nền tảng theo Đơn vị × Mức ưu tiên</h3>
+        <div class="sub">Trực quan hóa cùng số liệu với bảng bên cạnh</div>
+        <canvas id="chartUnitPriority"></canvas>
+      </div>
+      <div class="table-wrap">
+        <div style="padding:12px 16px 0;font-size:13px;font-weight:700;color:var(--blue-dark);">Bảng tổng hợp số liệu theo đơn vị (đồng bộ với file Excel giao nhiệm vụ)</div>
+        <div id="unit-summary-table"></div>
+      </div>
+    </div>
+
+    <div class="unit-grid" id="unit-grid"></div>
+  </div>
+
+  <!-- ===================== TAB: HOÀN THÀNH 2026 ===================== -->
+  <div class="tab-panel" id="tab-hoan-thanh-2026">
+    <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+      <div class="kpi-card accent-rc"><div class="num" id="kpi26-total"></div><div class="lbl">Nền tảng phải hoàn thành trong Năm 2026</div></div>
+      <div class="kpi-card accent-cao"><div class="num" id="kpi26-rccao"></div><div class="lbl">Trong đó mức Rất cao / Cao</div></div>
+      <div class="kpi-card"><div class="num" id="kpi26-units"></div><div class="lbl">Đơn vị VNPT-IT liên quan</div></div>
+      <div class="kpi-card accent-muted"><div class="num" id="kpi26-top"></div><div class="lbl">Đơn vị chịu tải lớn nhất (số nền tảng)</div></div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:14px;">
+      <h3>Số nền tảng phải hoàn thành trong Năm 2026 theo Đơn vị phụ trách</h3>
+      <div class="sub">Cột F chứa mốc 2026 × Cột H — Đơn vị phụ trách</div>
+      <canvas id="chart2026Unit"></canvas>
+    </div>
+
+    <div class="table-wrap" style="margin-bottom:14px;">
+      <div style="padding:12px 16px 0;font-size:13px;font-weight:700;color:var(--blue-dark);">Bảng tổng hợp nhiệm vụ 2026 theo đơn vị (nhấp vào một dòng để xem danh sách nền tảng)</div>
+      <div id="table-2026-summary"></div>
+    </div>
+
+    <div class="unit-grid" id="list-2026-detail"></div>
+  </div>
+
+</div>
+
+<script>
+const AGG = {"total": 79, "groupA": 17, "groupB": 62, "pri_counts": {"Rất cao": 6, "Cao": 8, "Trung bình": 23, "Thấp": 7}, "khong_ap_dung": 35, "can_theo_doi": 44, "tb_no_vnpt": 0, "tb_thuc": 23, "pri_nhom": {"Rất cao": {"A": 3, "B": 3}, "Cao": {"A": 5, "B": 3}, "Trung bình": {"A": 5, "B": 18}, "Thấp": {"A": 1, "B": 6}, "Không áp dụng": {"A": 3, "B": 32}}, "unit_counts": {"DAS": 15, "DGS": 7, "GEO": 5, "MDS": 5, "SI": 3, "DES": 3, "Cloud": 2, "ATTT": 2, "DMS": 2, "NNS": 2}, "unit_priority": {"DAS": {"Rất cao": 2, "Cao": 2, "Trung bình": 10, "Thấp": 0, "Không áp dụng": 1}, "DGS": {"Rất cao": 2, "Cao": 2, "Trung bình": 2, "Thấp": 1, "Không áp dụng": 0}, "GEO": {"Rất cao": 0, "Cao": 1, "Trung bình": 1, "Thấp": 3, "Không áp dụng": 0}, "MDS": {"Rất cao": 0, "Cao": 1, "Trung bình": 3, "Thấp": 1, "Không áp dụng": 0}, "SI": {"Rất cao": 1, "Cao": 2, "Trung bình": 0, "Thấp": 0, "Không áp dụng": 0}, "DES": {"Rất cao": 0, "Cao": 0, "Trung bình": 3, "Thấp": 0, "Không áp dụng": 0}, "Cloud": {"Rất cao": 0, "Cao": 1, "Trung bình": 0, "Thấp": 1, "Không áp dụng": 0}, "ATTT": {"Rất cao": 0, "Cao": 0, "Trung bình": 2, "Thấp": 0, "Không áp dụng": 0}, "DMS": {"Rất cao": 0, "Cao": 1, "Trung bình": 1, "Thấp": 0, "Không áp dụng": 0}, "NNS": {"Rất cao": 1, "Cao": 0, "Trung bình": 0, "Thấp": 1, "Không áp dụng": 0}}, "cq_counts": {"Bộ Công an": 14, "Bộ Tài chính": 11, "Bộ Nông nghiệp và Môi trường": 6, "Thanh tra Chính phủ": 6, "Bộ Nội vụ": 5, "Bộ Khoa học và Công nghệ": 4, "Văn phòng Trung ương Đảng": 4, "Bộ Tư pháp": 3, "Bộ Văn hóa, Thể thao và Du lịch": 3, "Bộ Giáo dục và Đào tạo": 3, "Bộ Y tế": 3, "Bộ Dân tộc và Tôn giáo": 3, "Ngân hàng Nhà nước Việt Nam": 3, "Văn phòng Chính phủ": 2, "Bộ Công Thương": 2, "Bộ Xây dựng": 2, "Đài Truyền hình Việt Nam": 2, "Bộ Quốc phòng": 1, "Bộ Ngoại giao": 1, "Đài Tiếng nói Việt Nam": 1}, "tg_counts": {"Đã vận hành": 10, "01/7/2026": 1, "Năm 2025 - 2026": 1, "Năm 2025 - 2030": 4, "Năm 2026": 40, "Năm 2026 - 2027": 1, "Năm 2026 - 2028": 1, "Năm 2026 - 2030": 9, "Năm 2027": 1, "Năm 2027 - 2028": 3, "Năm 2027 - 2030": 5, "Năm 2028": 2, "Năm 2030": 1}};
+const RECORDS = [{"id": 0, "nhom": "A", "stt": "1", "ten": "Cổng dịch vụ công quốc gia", "muctieu": "Giao diện một cửa duy nhất của tổ chức, cá nhân thực hiện các thủ tục hành chính với cơ quan nhà nước.\nTích hợp hệ thống điều phối kết nối với các hệ thống thông tin giải quyết thủ tục hành chính thuộc các lĩnh vực quản lý của các bộ, ngành để các cán bộ tiếp nhận, xử lý hồ sơ tại các cấp hành chính xử lý trên một cửa duy nhất.", "coquan": "Bộ Công an", "thoigian": "Năm 2026", "spdv": "VNPT iGate", "donvi_raw": "DAS", "phantich": "- Hệ thống VNPT iGate triển khai ở địa phương chỉ duy trì đến 2026 sau đó sẽ dừng\n- Hệ thống TTHC địa phương cần tái cấu trúc theo hướng:\n+ Tách riêng phân hệ kiosk thông minh\n+ Bổ sung phát triển module theo dõi, đôn đốc xử lý TTHC\n+ Dịch vụ công chủ động", "dexuat": "- Rà soát toàn bộ hồ sơ bán hàng VNPT iGate\n- Xây dựng chính sách giá của kiosk thông minh \n- Đánh giá thúc đẩy triển khai các phân  hệ theo dõi, đôn đốc xử lý TTHC, dịch vụ công chủ động\n", "uutien": "Rất cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 1, "nhom": "A", "stt": "2", "ten": "Nền tảng VNeID", "muctieu": "Nền tảng ứng dụng quốc gia phục vụ các chức năng lưu trữ dữ liệu số của công dân; định danh, xác thực điện tử; thực hiện dịch vụ công trực tuyến và giải quyết thủ tục hành chính; ví điện tử, kênh thanh toán, chi trả an sinh xã hội; kênh giao tiếp chính thức giữa người dân với cơ quan nhà nước, tổ chức, doanh nghiệp, đồng thời thực hiện điều phối dữ liệu phục vụ phát triển kinh tế - xã hội.", "coquan": "Bộ Công an", "thoigian": "Đã vận hành", "spdv": "vnCitizens", "donvi_raw": "DAS", "phantich": " cần xin cấp phép tích hợp xác thực qua VNeID: vnCitizens", "dexuat": "Chuẩn hóa module đăng nhập/xác thực VNeID và mô hình dữ liệu công dân trên vnCitizens", "uutien": "Cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 2, "nhom": "A", "stt": "3", "ten": "Nền tảng định danh và xác thực điện tử", "muctieu": "Nền tảng dùng chung cung cấp dịch vụ định danh, xác thực điện tử và phục vụ kết nối, chia sẻ dữ liệu giữa các cơ sở dữ liệu quốc gia, cơ sở dữ liệu chuyên ngành, hệ thống thông tin của cơ quan nhà nước theo quy định tại Nghị định số 69/2024/NĐ-CP ngày 25 tháng 6 năm 2024 của Chính phủ quy định về định danh và xác thực điện tử.", "coquan": "Bộ Công an", "thoigian": "Năm 2026", "spdv": "Các CSDL quốc gia: CSDL CCVC quốc gia, CSDL đất đai, CSDL lao động việc làm…...", "donvi_raw": "DAS\nDGS\nGEO\n...", "phantich": "Một số CSDL của VNPT triển khai cần tích hợp xác thực điện tử: CSDL cán bộ CCVC quốc gia, CSDL đất đai, CSDL lao động việc làm,….", "dexuat": "Đưa yêu cầu tích hợp định danh điện tử vào checklist sản phẩm Chính phủ số.", "uutien": "Cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS", "DGS", "GEO"]}, {"id": 3, "nhom": "A", "stt": "4", "ten": "Trục liên thông văn bản quốc gia", "muctieu": "Nền tảng kết nối và trao đổi văn bản điện tử thống nhất toàn quốc giữa các cơ quan trong hệ thống chính trị, có mở rộng kết nối với tổ chức doanh nghiệp, người dân để cơ quan nhà nước gửi văn bản sang tổ chức, doanh nghiệp, người dân và ngược lại.\n- Gửi, nhận văn bản điện tử;\n- Truy vết quá trình gửi, nhận, xử lý văn bản điện tử.", "coquan": "Văn phòng Chính phủ", "thoigian": "Đã vận hành", "spdv": "NA", "donvi_raw": "DGS", "phantich": "NA", "dexuat": "VNPT triển khai trục liên thông văn bản quốc gia, hệ thống Quản lý văn bản điện tử tích hợp liên thông theo yêu cầu", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DGS"]}, {"id": 4, "nhom": "A", "stt": "5", "ten": "Nền tảng chia sẻ, điều phối dữ liệu của Trung tâm dữ liệu quốc gia", "muctieu": "Hạ tầng tích hợp, phân phối, chia sẻ dữ liệu giữa Trung tâm dữ liệu quốc gia với cơ quan/tổ chức/cá nhân.", "coquan": "Bộ Công an", "thoigian": "Năm 2026", "spdv": "Trục liên thông LGSP\nData lake", "donvi_raw": "DGS", "phantich": "Các hệ thống Data Lake triển khai cho Bộ/Tỉnh, Các CSDL quốc gia (nội vụ,….)  cần tích hợp, chia sẻ với trung tâm dữ liệu quốc gia\n", "dexuat": "Xây gói 'chuẩn bị dữ liệu tỉnh kết nối Trung tâm dữ liệu quốc gia'.\nLưu ý đưa khi tư vấn, dự toán tích hợp", "uutien": "Cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DGS"]}, {"id": 5, "nhom": "A", "stt": "6", "ten": "Nền tảng tích hợp, chia sẻ dữ liệu quốc gia (NDXP)", "muctieu": "Trung gian kết nối, chia sẻ dữ liệu giữa các cơ quan; điểm nút trung chuyển dữ liệu kết nối LGSP địa phương.", "coquan": "Bộ Khoa học và Công nghệ", "thoigian": "Đã vận hành", "spdv": "Trục liên thông LGSP", "donvi_raw": "DGS", "phantich": "Nâng cấp LGSP đáp ứng yêu cầu hệ thống LDOP về Điều phối - Tích hợp và Chia sẻ dữ liệu", "dexuat": "Tập huấn về tính cấp thiết để nâng cấp LGSP tỉnh cho các VNPT TTP làm việc với khách hàng\nHướng dẫn báo giá tính năng nâng cấp cho VNPT TTP ", "uutien": "Rất cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DGS"]}, {"id": 6, "nhom": "A", "stt": "7", "ten": "Cổng dữ liệu quốc gia", "muctieu": "Nền tảng tập trung thống nhất để cung cấp thông tin dữ liệu của cơ quan nhà nước cũng như dữ liệu mở của các bộ, ngành, địa phương", "coquan": "Bộ Công an", "thoigian": "Năm 2026", "spdv": "VNPT ODP", "donvi_raw": "MDS", "phantich": "Tỉnh có thể duy trì cổng dữ liệu mở nhưng phải đồng bộ danh mục, dữ liệu mở và dịch vụ chia sẻ lên cổng quốc gia. \nCơ hội triển khai Cổng dữ liệu mở ODP sẽ rất khó vì Cổng dữ liệu quốc gia có \"Không gian riêng để cho các cơ quan, tổ chức quản trị các tập dữ liệu của mình\"", "dexuat": "Chuẩn hóa sản phẩm ODP theo DCAT-VN, catalog dữ liệu và kết nối cổng dữ liệu quốc gia.", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["MDS"]}, {"id": 7, "nhom": "A", "stt": "8", "ten": "Nền tảng điện toán đám mây trong Trung tâm dữ liệu quốc gia", "muctieu": "Hạ tầng số tập trung, ảo hóa để lưu trữ/quản lý dữ liệu quốc gia; mục tiêu CSDL quốc gia chạy trên cloud quốc gia.", "coquan": "Bộ Công an", "thoigian": "Năm 2026", "spdv": "Cloud", "donvi_raw": "Cloud", "phantich": "Đánh giá loại trừ các nền tảng, hệ thống (17 nền tảng quốc gia+ 62 nền tảng số dùng chung quốc gia cho ngành, lĩnh vực) để tính toán thị phần khối chính quyền còn lại", "dexuat": "Trung tâm Cloud xây dựng tính toán thị phần hạ tầng sau khi loại trừ các nền tảng, hệ thống (17 nền tảng quốc gia+ 62 nền tảng số dùng chung quốc gia cho ngành, lĩnh vực)", "uutien": "Cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["Cloud"]}, {"id": 8, "nhom": "A", "stt": "9", "ten": "Nền tảng chuỗi khối (blockchain) quốc gia", "muctieu": "Nền tảng blockchain cơ bản, đa dụng cho hợp đồng thông minh và giao dịch số được định danh/xác thực tự động", "coquan": "Bộ Công an", "thoigian": "Năm 2026", "spdv": "eContract, CA, SmartCA, SEAL, Invoice, các SPDV Giáo dục số, Y tế số...", "donvi_raw": "SI", "phantich": "- Ảnh hưởng, hạn chế cơ hội triển khai các nền tảng blockchain riêng lẻ cho các CQQLNN, KH lớn.\n- Mở ra cơ hội tích hợp các SPDV hiện hữu của VNPT lên hạ tầng blockchain quốc gia (eContract, CA, SmartCA, SEAL, Invoice, các SPDV Giáo dục số, Y tế số, truy xuất nguồn gốc...), nâng cấp hệ sinh thái SPDV.", "dexuat": "- Rà soát danh mục SPDV có yếu tố xác thực, lưu vết, chứng thực, định danh giao dịch.\n- Chủ động làm việc với Bộ CA, TT dữ liệu quốc gia để nắm tiêu chuẩn kỹ thuật, API kết nối... để sẵn sàng tiên phong tích hợp, tư vấn...", "uutien": "Cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["SI"]}, {"id": 9, "nhom": "A", "stt": "10", "ten": "Trợ lý ảo quốc gia", "muctieu": "Một nền tảng duy nhất để bộ/ngành/địa phương xây trợ lý ảo mà không đầu tư nền tảng thuật toán riêng lẻ.", "coquan": "Bộ Công an", "thoigian": "Năm 2028", "spdv": null, "donvi_raw": null, "phantich": "Không ảnh hưởng\nTỉnh có thể xây kho tri thức, trợ lý chuyên ngành/địa phương ở lớp tùy biến; tránh đầu tư nền tảng thuật toán lõi trùng lặp khi quốc gia vận hành.", "dexuat": "NA", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": []}, {"id": 10, "nhom": "A", "stt": "11", "ten": "Trung tâm tính toán hiệu năng cao của Trung tâm dữ liệu quốc gia", "muctieu": "Hạ tầng tính toán chiến lược quốc gia cho dữ liệu lớn, AI quy mô cao, phân tích/dự báo/ra quyết định.", "coquan": "Bộ Công an", "thoigian": "Năm 2030", "spdv": "Cloud", "donvi_raw": "Cloud", "phantich": "Tỉnh không tự đầu tư HPC nếu không có nhu cầu đặc thù; ", "dexuat": "Theo dõi lộ trình 2030; chuẩn hóa dữ liệu lớn/AI để có thể khai thác HPC quốc gia.", "uutien": "Thấp", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["Cloud"]}, {"id": 11, "nhom": "A", "stt": "12", "ten": "Nền tảng số từ điển dữ liệu dùng chung", "muctieu": "Từ điển dữ liệu dùng chung là hệ thống tài liệu và công cụ kỹ thuật định nghĩa thống nhất tên gọi, mô tả, định dạng, đơn vị tính, mối liên kết và cách sử dụng của các trường dữ liệu được sử dụng phổ biến giữa các cơ quan, tổ chức trong hệ thống chính trị.\nMục đích chính của nền tảng là chuẩn hóa dữ liệu để bảo đảm tính đồng bộ, tương thích và liên thông giữa các cơ sở dữ liệu và hệ thống thông tin trên phạm vi toàn quốc.\n", "coquan": "Bộ Công an", "thoigian": "Năm 2026", "spdv": "Data lake", "donvi_raw": "DGS", "phantich": "Bổ sung năng lực quản trị từ điển dữ liệu, metadata catalog, mapping dữ liệu và kiểm soát tuân thủ chuẩn cho datalake", "dexuat": "Đã giao VB 1721//VNPT-IT-CLSP V/v Giao nhiệm vụ nâng cấp, phát triển sản phẩm VNPT Data Lakehouse đáp ứng Quyết định 2439/QĐ- TTg ngày 04/11/2025 của Thủ tướng Chính phủ", "uutien": "Rất cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DGS"]}, {"id": 12, "nhom": "A", "stt": "13", "ten": "Nền tảng SOC quốc gia thế hệ mới", "muctieu": "Là nền tảng số đáp ứng các yêu cầu tối thiểu đối với hệ thống số quy định tại Điều 8 Luật Chuyển đổi số. Nền tảng hình thành trung tâm điều phối an ninh mạng tập trung, thống nhất ở cấp quốc gia, đóng vai trò đầu mối kết nối các lực lượng bảo vệ an ninh mạng từ trung ương đến địa phương, do Việt Nam tự làm chủ, vận hành và kiểm soát. Các cơ quan, tổ chức được kết nối, khai thác dịch vụ của nền tảng mà không cần đầu tư, xây dựng hệ thống điều phối an ninh mạng riêng lẻ, trùng lặp. Nền tảng cung cấp các dịch vụ dùng chung cốt lõi gồm:\n- Giám sát và phát hiện tấn công mạng.\n- Chia sẻ thông tin tình báo an ninh mạng.\n- Điều phối ứng phó sự cố an ninh mạng.\n- Phân tích mã độc tập trung.\n", "coquan": "Bộ Công an", "thoigian": "Năm 2026", "spdv": "ATTT", "donvi_raw": "ATTT", "phantich": "Chưa ảnh hưởng lắm nhiều đến SPDV VNPT. Nền tảng của Bộ CA áp dụng khối chính quyền phải dùng, còn SPDV của VNPT có thể tiếp cận để triển khai cho các tổ chức, đơn vị ngoài chính quyền.", "dexuat": "Tập trung tiếp cận để triển khai cho các tổ chức, đơn vị ngoài chính quyền.", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["ATTT"]}, {"id": 13, "nhom": "A", "stt": "14", "ten": "Hệ thống phòng vệ mạng quốc gia", "muctieu": "Lớp phòng thủ chủ động cấp quốc gia: WAF, chống DDoS, lọc/điều phối lưu lượng, bảo vệ API.", "coquan": "Bộ Công an", "thoigian": "Năm 2027 - 2028", "spdv": "ATTT", "donvi_raw": "ATTT", "phantich": "Chưa ảnh hưởng lắm nhiều đến SPDV VNPT. Nền tảng của Bộ CA áp dụng khối chính quyền phải dùng, còn SPDV của VNPT có thể tiếp cận để triển khai cho các tổ chức, đơn vị ngoài chính quyền.", "dexuat": "Tập trung tiếp cận để triển khai cho các tổ chức, đơn vị ngoài chính quyền.", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["ATTT"]}, {"id": 14, "nhom": "A", "stt": "15", "ten": "Nền tảng quản lý dữ liệu thống kê", "muctieu": "Quản lý, thu thập, xử lý, kết nối và công bố chỉ tiêu thống kê quốc gia, bộ/ngành, cấp tỉnh, cấp xã.", "coquan": "Bộ Tài chính", "thoigian": "Năm 2025 - 2030", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 15, "nhom": "A", "stt": "16", "ten": "Cổng Pháp luật quốc gia", "muctieu": "Kênh pháp luật tập trung, tin cậy; tra cứu, lấy ý kiến, phản ánh kiến nghị về chính sách pháp luật.", "coquan": "Bộ Tư pháp", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 16, "nhom": "A", "stt": "17", "ten": "Hệ thống Công báo điện tử nước CHXHCN Việt Nam", "muctieu": "Nền tảng tập trung, dùng chung công bố VBQPPL chính thống, chính xác, kịp thời.", "coquan": "Văn phòng Chính phủ", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 17, "nhom": "B", "stt": "1", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính của Đảng trên môi trường điện tử", "muctieu": "TTHC nội bộ/đối ngoại của tổ chức Đảng trên môi trường điện tử.", "coquan": "Văn phòng Trung ương Đảng", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": "DAS", "phantich": "Không ảnh hưởng\nDự án hệ thống thông tin giải quyết TTHC của Đảng do VNPT triển khai", "dexuat": "NA", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 18, "nhom": "B", "stt": "2", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC dùng tập trung, đồng bộ từ trung ương đến cấp xã, kết nối Cổng DVCQG.", "coquan": "Bộ Công an", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 19, "nhom": "B", "stt": "3", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC thuộc phạm vi Bộ Quốc phòng.", "coquan": "Bộ Quốc phòng", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 20, "nhom": "B", "stt": "4", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC thuộc phạm vi Bộ Ngoại giao.", "coquan": "Bộ Ngoại giao", "thoigian": "Đã vận hành", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 21, "nhom": "B", "stt": "5", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Nội vụ sử dụng thống nhất từ trung ương đến địa phương.", "coquan": "Bộ Nội vụ", "thoigian": "Năm 2026", "spdv": "VNPT iGate", "donvi_raw": "DAS", "phantich": "Không ảnh hưởng\nDự án hệ thống thông tin giải quyết TTHC của Đảng do VNPT triển khai", "dexuat": "NA", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 22, "nhom": "B", "stt": "6", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Tư pháp.", "coquan": "Bộ Tư pháp", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 23, "nhom": "B", "stt": "7", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Tài chính.", "coquan": "Bộ Tài chính", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 24, "nhom": "B", "stt": "8", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Công Thương.", "coquan": "Bộ Công Thương", "thoigian": "Năm 2026", "spdv": "VNPT iGate", "donvi_raw": "DAS", "phantich": "Không ảnh hưởng\nDự án hệ thống thông tin giải quyết TTHC của Đảng do VNPT triển khai", "dexuat": "NA", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 25, "nhom": "B", "stt": "9", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Nông nghiệp và Môi trường.", "coquan": "Bộ Nông nghiệp và Môi trường", "thoigian": "Năm 2026", "spdv": "VNPT iGate", "donvi_raw": "GEO", "phantich": "Không ảnh hưởng\nDự án hệ thống thông tin giải quyết TTHC của Đảng do VNPT triển khai", "dexuat": "NA", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["GEO"]}, {"id": 26, "nhom": "B", "stt": "10", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Xây dựng.", "coquan": "Bộ Xây dựng", "thoigian": "Năm 2026", "spdv": "VNPT iGate", "donvi_raw": "MDS", "phantich": "Không ảnh hưởng\nDự án hệ thống thông tin giải quyết TTHC của Đảng do VNPT triển khai", "dexuat": "NA", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["MDS"]}, {"id": 27, "nhom": "B", "stt": "11", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Văn hóa, Thể thao và Du lịch.", "coquan": "Bộ Văn hóa, Thể thao và Du lịch", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 28, "nhom": "B", "stt": "12", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Khoa học và Công nghệ.", "coquan": "Bộ Khoa học và Công nghệ", "thoigian": "Năm 2026", "spdv": "VNPT iGate", "donvi_raw": "DGS", "phantich": "Không ảnh hưởng\nDự án hệ thống thông tin giải quyết TTHC của Đảng do VNPT triển khai", "dexuat": "NA", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DGS"]}, {"id": 29, "nhom": "B", "stt": "13", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Giáo dục và Đào tạo.", "coquan": "Bộ Giáo dục và Đào tạo", "thoigian": "Năm 2026", "spdv": "VNPT iGate", "donvi_raw": "DES", "phantich": "Không ảnh hưởng\nDự án hệ thống thông tin giải quyết TTHC của Đảng do VNPT triển khai", "dexuat": "NA", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DES"]}, {"id": 30, "nhom": "B", "stt": "14", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Y tế.", "coquan": "Bộ Y tế", "thoigian": "Năm 2026", "spdv": "VNPT iGate", "donvi_raw": "DMS", "phantich": "Không ảnh hưởng\nDự án hệ thống thông tin giải quyết TTHC của Đảng do VNPT triển khai", "dexuat": "NA", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DMS"]}, {"id": 31, "nhom": "B", "stt": "15", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC ngành Dân tộc và Tôn giáo.", "coquan": "Bộ Dân tộc và Tôn giáo", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 32, "nhom": "B", "stt": "16", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC thuộc Ngân hàng Nhà nước.", "coquan": "Ngân hàng Nhà nước Việt Nam", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 33, "nhom": "B", "stt": "17", "ten": "Hệ thống thông tin giải quyết thủ tục hành chính", "muctieu": "Hệ thống TTHC thuộc Thanh tra Chính phủ.", "coquan": "Thanh tra Chính phủ", "thoigian": "Năm 2026", "spdv": "VNPT iGate", "donvi_raw": "DAS", "phantich": "Không ảnh hưởng\nDự án hệ thống thông tin giải quyết TTHC của Thanh tra Chính phủ do VNPT triển khai", "dexuat": "NA", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 34, "nhom": "B", "stt": "18", "ten": "Cổng thông tin một cửa quốc gia", "muctieu": "Kết nối cơ quan nhà nước và doanh nghiệp trong thủ tục hải quan, xuất nhập khẩu, quá cảnh, một cửa ASEAN.", "coquan": "Bộ Tài chính", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 35, "nhom": "B", "stt": "19", "ten": "Hệ thống thông tin điều hành tác nghiệp trong các cơ quan Đảng", "muctieu": "Gửi, nhận, xử lý văn bản toàn trình tới cấp độ Tối mật, tích hợp cơ yếu, xuyên suốt từ trung ương đến cấp xã.", "coquan": "Văn phòng Trung ương Đảng", "thoigian": "Đã vận hành", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 36, "nhom": "B", "stt": "20", "ten": "Hệ thống thông tin lĩnh vực tổ chức - xây dựng Đảng", "muctieu": "Nghiệp vụ tổ chức xây dựng Đảng: tổ chức, cán bộ, đảng viên, bảo vệ chính trị nội bộ, sức khỏe cán bộ diện quản lý.", "coquan": "Văn phòng Trung ương Đảng", "thoigian": "Đã vận hành", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 37, "nhom": "B", "stt": "21", "ten": "Phần mềm theo dõi tình hình thực hiện Nghị quyết, Chỉ thị, Kết luận của Trung ương", "muctieu": "Theo dõi, đánh giá kết quả thực hiện nghị quyết/chỉ thị/kết luận; quản lý chỉ tiêu báo cáo, thống kê trung ương/địa phương.", "coquan": "Văn phòng Trung ương Đảng", "thoigian": "Đã vận hành", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 38, "nhom": "B", "stt": "22", "ten": "Hệ thống quản lý đấu giá tài sản", "muctieu": "Đăng tải, niêm yết công khai, quản lý cuộc đấu giá tài sản, bán tài sản công/dư thừa/vi phạm.", "coquan": "Bộ Công an", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 39, "nhom": "B", "stt": "23", "ten": "Nền tảng quản lý doanh nghiệp quốc gia (CSDL quốc gia về đăng ký doanh nghiệp)", "muctieu": "Đăng ký doanh nghiệp/hộ kinh doanh; quản lý sau đăng ký; công bố thông tin; CSDL gốc chia sẻ dữ liệu doanh nghiệp.", "coquan": "Bộ Tài chính", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 40, "nhom": "B", "stt": "24", "ten": "Nền tảng tài chính số quốc gia (CSDL tổng hợp về Tài chính)", "muctieu": "Thu thập, tích hợp, quản lý, chia sẻ, phân tích dữ liệu ngành tài chính trên phạm vi toàn quốc.", "coquan": "Bộ Tài chính", "thoigian": "Năm 2026 - 2030", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 41, "nhom": "B", "stt": "25", "ten": "Hệ thống công nghệ thông tin thực hiện Hải quan số", "muctieu": "Số hóa quản lý nhà nước về hải quan, xuất nhập khẩu, quá cảnh hàng hóa, phương tiện và nghiệp vụ liên quan.", "coquan": "Bộ Tài chính", "thoigian": "Năm 2028", "spdv": "Cửa khẩu số", "donvi_raw": "DGS", "phantich": "NA", "dexuat": "Tích hợp với hệ thống Hải quan theo yêu cầu khi thực hiện triển khai CKS cho Tỉnh", "uutien": "Thấp", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DGS"]}, {"id": 42, "nhom": "B", "stt": "26", "ten": "Nền tảng Cổng công khai ngân sách nhà nước", "muctieu": "Công khai ngân sách tập trung, thống nhất; minh bạch hóa dữ liệu tài chính công.", "coquan": "Bộ Tài chính", "thoigian": "Năm 2026 - 2030", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 43, "nhom": "B", "stt": "27", "ten": "Hệ thống thông tin quản lý thuế", "muctieu": "Quản lý thuế tích hợp, tập trung; cung cấp dịch vụ điện tử/số cho người nộp thuế.", "coquan": "Bộ Tài chính", "thoigian": "Năm 2027 - 2028", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 44, "nhom": "B", "stt": "28", "ten": "Hệ thống mạng đấu thầu quốc gia", "muctieu": "Quản lý thông tin đấu thầu, đấu thầu qua mạng, mua sắm trực tuyến, hợp đồng điện tử, thanh toán điện tử.", "coquan": "Bộ Tài chính", "thoigian": "Đã vận hành", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 45, "nhom": "B", "stt": "29", "ten": "Nền tảng quản lý cán bộ công chức, viên chức quốc gia", "muctieu": "Quản lý hồ sơ điện tử CBCCVC, cho phép cơ quan và cá nhân cập nhật, khai thác dữ liệu.", "coquan": "Bộ Nội vụ", "thoigian": "Năm 2026", "spdv": "Tập trung CSDL/hồ sơ CBCCVC quốc gia.", "donvi_raw": "DAS", "phantich": "Tỉnh không xây hồ sơ CBCCVC lõi trùng; phạm vi phù hợp là đánh giá hiệu suất, KPI, nhiệm vụ, xếp loại, kết nối hồ sơ quốc gia.", "dexuat": "Rà soát hợp đồng triển khai CCVC của Bộ/Tỉnh đưa ra đề xuất xử lý khi hệ thống nền tảng tập trung quốc gia vận hành", "uutien": "Rất cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 46, "nhom": "B", "stt": "30", "ten": "Nền tảng hợp đồng lao động điện tử", "muctieu": "Quản lý tập trung dữ liệu hợp đồng lao động điện tử, dịch vụ dữ liệu liên quan lao động, tiền lương, BHXH.", "coquan": "Bộ Nội vụ", "thoigian": "01/7/2026", "spdv": "VNPT eContract, VNPT SEAL, VNPT CA, VNPT SmartCA, VNPT TSA", "donvi_raw": "SI", "phantich": "- Nền tảng hợp đồng lao động điện tử Kết nối liên thông với các eContract, hệ thống xác thực định danh điện tử (VNeID), cơ sở dữ liệu quốc gia, cơ sở dữ liệu chuyên ngành để định danh, xác thực thông tin chủ thể tham gia giao kết hợp đồng lao động điện tử và hỗ trợ giải quyết các thủ tục hành chính, giao dịch điện tử liên quan.\n- Thị trường HĐLĐĐT sẽ được chuẩn hóa hơn, KHDN sẽ ưu tiên các nhà cung cấp có khả năng ký số hợp lệ, chứng thực dữ liệu, kết nối nền tảng BNV, gắn ID hợp đồng, báo cáo lao động và tra cứu lâu dài. Điều nãy dẫn tới việc cạnh tranh và điều chỉnh về mô hình kinh doanh hệ sinh thái SPDV thay vì DV đơn lẻ.\n- Các SPDV hiện có cần rà soát, điều chỉnh nâng cấp đáp ứng các quy trình, quy định kỹ thuật, kết nối liên thông... theo các quy định chung của Nền tảng.", "dexuat": "- Rà soát điều chỉnh nâng cấp các SPDV hệ sinh thái tin cậy đáp ứng các yêu cầu của NĐ 337 và Nền tảng HĐLĐĐT.\n- Thực hiện tích hợp các SPDV theo hướng dẫn của Bộ Nội vụ, đảm bảo đúng quy chuẩn, quy trình, tiêu chuẩn kỹ thuật.\n- Phối hợp với VNP, kênh bán xây dựng gói chính sách combo các SPDV đáp ứng quy định chung và nhu cầu của thị trường/khách hàng; xây dựng CTBH trọng điểm để thúc đẩy triển khai các dv eContract, SmartCA, SEAL, TSA; truyền thông quảng bá rộng rãi với thông điệp VNPT cung cấp giải pháp HĐLĐĐT đáp ứng NĐ 337 và kết nối Nền tảng HĐLĐĐT quốc gia, tích hợp ký số, chứng thực thông điệp dữ liệu, lưu trữ lâu dài, báo cáo và quản trị lao động.", "uutien": "Rất cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["SI"]}, {"id": 47, "nhom": "B", "stt": "31", "ten": "Sàn giao dịch việc làm quốc gia", "muctieu": "Nền tảng số quản lý tập trung, thống nhất toàn quốc về kết nối cung - cầu lao động, phục vụ giao dịch việc làm trực tuyến cho các cơ quan quản lý nhà nước, tổ chức dịch vụ việc làm công, người lao động và người sử dụng lao động, doanh nghiệp hoạt động dịch vụ việc làm. Mục tiêu:\n- Cập nhật thông tin người tìm việc, việc tìm người theo biểu mẫu thống nhất; tìm kiếm, kết nối việc làm, thống kê giao dịch việc làm; - Quản lý doanh nghiệp, người lao động tham gia; cho phép kết nối, đưa ra các gợi ý kết nối giữa doanh nghiệp tuyển dụng và người lao động thông qua các giải pháp ứng dụng trí tuệ nhân tạo, thuật toán kết nối việc làm;\n- Kết nối dữ liệu, thông tin với các cơ sở dữ liệu: cơ sở dữ liệu doanh nghiệp, cơ sở dữ liệu giáo dục nghề nghiệp, cơ sở dữ liệu về bảo hiểm thất nghiệp, cơ sở dữ liệu về bảo hiểm xã hội, cơ sở dữ liệu quốc gia về dân cư, nền tảng hợp đồng lao động điện tử và các hệ thống liên quan;\n- Thống kê, tổng hợp, báo cáo và phân tích dữ liệu để hỗ trợ các cơ quan quản lý nhà nước trong việc điều phối thị trường lao động, hoạch định chính sách, quản lý nguồn nhân lực.\n", "coquan": "Bộ Nội vụ", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": "SI", "phantich": "Dự án do VNPT triển khai", "dexuat": "- Cập nhật bổ sung các tính năng AI, tính năng tính hợp theo yêu cầu của Bộ Nội vụ", "uutien": "Cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["SI"]}, {"id": 48, "nhom": "B", "stt": "32", "ten": "Nền tảng số quốc gia về văn thư, lưu trữ", "muctieu": "Nền tảng dùng chung, thống nhất nhằm quản lý tập trung, an toàn và hiệu quả cơ sở dữ liệu tài liệu lưu trữ Phông lưu trữ nhà nước Việt Nam, bảo đảm văn bản, tài liệu hình thành trong cơ quan nhà nước được kiểm soát, lưu trữ từ khi được ban hành đến khi được đưa vào lưu trữ để bảo quản và tổ chức sử dụng.", "coquan": "Bộ Nội vụ", "thoigian": "Năm 2026 - 2030", "spdv": "VNPT iStorage", "donvi_raw": "DAS", "phantich": "Nền tảng số quốc gia về văn thư, lưu trữ tập trung quản lý dữ liệu Phông lưu trữ nhà nước trên toàn quốc (2026-2030); sản phẩm VNPT iStorage đang triển khai tại các bộ/tỉnh  cần đáp ứng các yếu tố tích hợp, kỹ thuật Bộ nội vụ đưa ra", "dexuat": "-Trung tâm DAS rà soát các vấn đề về kỹ thuật đảm bảo tích hợp, kết nối liên thông\n", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 49, "nhom": "B", "stt": "33", "ten": "Nền tảng Sổ sức khoẻ điện tử", "muctieu": "Lưu trữ, quản lý thông tin sức khỏe cá nhân của người dân tập trung và thống nhất trên toàn quốc; thực hiện thủ tục hành chính liên quan đến khám bệnh, chữa bệnh.\n- Tích hợp Hệ thống quản lý thông tin tiêm chủng quốc gia.", "coquan": "Bộ Y tế", "thoigian": "Năm 2026", "spdv": "VNPT HSSK", "donvi_raw": "DMS", "phantich": "Nền tảng SSKĐT quốc gia (Bộ Y tế chủ quản, tích hợp VNeID theo QĐ 1551/QĐ-BYT) chồng lấn trực tiếp với VNPT HSSK: (1) App VNCARE (APP người dân của HSSK)(mất vai trò \"sổ sức khỏe\" vào VNeID, chỉ giữ được người dùng ở tiện ích gia tăng (đặt lịch, chăm sóc sức khỏe từ xa); (2) Kho HSSK cấp tỉnh có nguy cơ bị các Sở Y tế xem xét lại sự cần thiết, có nguy cơ mất doanh thu giai đoạn 2026-2030. Tuy nhiên, nền tảng quốc gia chỉ lưu trữ tập trung, khâu thu thập, chuẩn hóa, liên thông dữ liệu vẫn ở địa phương. VNPT IT đã kết nối VNeID, và đẩy được một phần dữ liệu theo QĐ 1551 và có lợi thế HIS/HMIS (>60% tuyến xã). Vì vậy vẫn còn cơ hội chuyển vai trò từ kho lưu trữ song song sang hạ tầng cấp dữ liệu cho nền tảng quốc gia.", "dexuat": "1. Trung tâm DMS + Ban Chiến lược sản phẩm:định vị VNPT HSSK thành hệ thống thu thập -chuẩn hóa -liên thông dữ liệu cấp tỉnh lên nền tảng quốc gia/VNeID; cập nhật chiến lược line YTDP năm 2026–2030 (Q3/2026).\n2. Trung tâm DMS: hiện tại đã phát triển DrCare247 thay thế VNCARE (APP HSSK )theo hướng app tiện ích dịch vụ y tế định danh qua VNeID, không cạnh tranh vai trò \"sổ sức khỏe điện tử\".\n3.Ban KDGP đẩy mạnh truyền thông đến khách hàng TTP số hóa KSK định kỳ miễn phí cho Sở Y tế thông qua HIS/HMIS, liên thông miễn phí lên VNeID - lấy đây làm lợi thế bảo vệ kho HSSK cấp tỉnh cho 16 tỉnh hiện hữu.\n3. Ban Chiến lược sản phẩm: theo dõi văn bản hướng dẫn QĐ 1132/QĐ-TTg và các văn bản khác của BYT để điều chỉnh phương án kịp thời.", "uutien": "Cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DMS"]}, {"id": 50, "nhom": "B", "stt": "34", "ten": "Hệ thống thông tin và CSDL quốc gia về An toàn thực phẩm", "muctieu": "Là môi trường số duy nhất phục vụ 100% thủ tục hành chính an toàn thực phẩm (Tự công bố, đăng ký sản phẩm, quảng cáo, kiểm nghiệm, chứng nhận cơ sở đủ điều kiện...) cho doanh nghiệp trong phạm vi toàn quốc;\n- Trục liên thông chia sẻ dữ liệu kiểm tra, hậu kiểm, giám sát nguy cơ, phòng ngừa sự cố ngộ độc thực phẩm, truy xuất nguồn gốc thực phẩm giữa ba Bộ (Bộ Y tế, Bộ Nông nghiệp và Môi trường, Bộ Công Thương) và 34 tỉnh/thành phố trực thuộc trung ương", "coquan": "Bộ Y tế", "thoigian": "Năm 2026 - 2030", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 51, "nhom": "B", "stt": "35", "ten": "Nền tảng số quản trị giáo dục quốc gia", "muctieu": "Xây dựng, nâng cấp, phát triển nền tảng số quốc gia ứng dụng AI có kiểm soát phục vụ quản trị giáo dục quốc gia gồm:\n- Phục vụ quản trị các cơ sở giáo dục (mầm non, phổ thông, giáo dục thường xuyên) trên cả nước;\n- Quản lý nhà nước về giáo dục và đào tạo (dùng chung cho Bộ GDĐT, các sở GDĐT, xã/phường trên cả nước);\n- Phát triển các cơ sở dữ liệu chuyên ngành, cơ sở dữ liệu quốc gia về giáo dục và đào tạo.", "coquan": "Bộ Giáo dục và Đào tạo", "thoigian": "Năm 2026 - 2027", "spdv": "Tập trung quản trị giáo dục toàn quốc.", "donvi_raw": "DES", "phantich": "Chưa đủ thông tin để đánh giá\nNền tảng tập trung quản trị giáo dục toàn quốc (mầm non, phổ thông, giáo dục thường xuyên) từ Bộ đến xã/phường; các sản phẩm quản trị trường học/giáo dục VNPT-IT (nếu có) tại địa phương có nguy cơ trùng lặp chức năng quản trị lõi khi nền tảng quốc gia vận hành (2026-2027).", "dexuat": "Ban KDGP phối hợp với TT DES làm việc tới Bộ để làm rõ mục tiêu, phạm vi của nền tảng", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DES"]}, {"id": 52, "nhom": "B", "stt": "36", "ten": "Nền tảng giáo dục thông minh quốc gia", "muctieu": "Bao gồm xây dựng, nâng cấp, phát triển nền tảng số quốc gia ứng dụng AI có kiểm soát phục vụ các hoạt động đổi mới phương pháp dạy, học, kiểm tra, đánh giá trong các cơ sở giáo dục mầm non, phổ thông, giáo dục thường xuyên.", "coquan": "Bộ Giáo dục và Đào tạo", "thoigian": "Năm 2026 - 2028", "spdv": "Tập trung dịch vụ giáo dục thông minh toàn quốc.", "donvi_raw": "DES", "phantich": "Chưa đủ thông tin để đánh giá\nNền tảng AI phục vụ đổi mới dạy - học - kiểm tra - đánh giá dùng chung toàn quốc; các sản phẩm học liệu số/AI giáo dục của VNPT tại tỉnh cần định vị lại vai trò để tránh trùng lặp nền tảng lõi khi hệ thống quốc gia vận hành (2026-2028).", "dexuat": "Ban KDGP phối hợp với TT DES làm việc tới Bộ để làm rõ mục tiêu, phạm vi của nền tảng", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DES"]}, {"id": 53, "nhom": "B", "stt": "37", "ten": "Nền tảng quốc gia về chăn nuôi và thú y", "muctieu": "Phục vụ quản lý nhà nước thống nhất, xuyên suốt từ trung ương đến địa phương trong lĩnh vực chăn nuôi và thú y; cung cấp môi trường số tập trung để thu thập, cập nhật, chuẩn hóa, quản lý, kết nối, chia sẻ, khai thác dữ liệu và thực hiện các nghiệp vụ chuyến ngành về giống vật nuôi, nguồn gen giống vật nuôi, thức ăn chăn nuôi, cơ sở chăn nuôi, cơ sở giết mổ, sơ chế, chế biến sản phẩm chăn nuôi, môi trường chăn nuôi, thị trường sản phẩm chăn nuôi, phòng, chống dịch bệnh động vật, kiểm dịch động vật, sản phẩm động vật, thuốc thú y, hành nghề thú y, truy xuất nguồn gốc, kiểm kê khí nhà kính, quan trắc, giám sát, cảnh báo môi trường và dịch bệnh trong chăn nuôi", "coquan": "Bộ Nông nghiệp và Môi trường", "thoigian": "Năm 2025 - 2030", "spdv": "Tập trung nghiệp vụ chuyên ngành chăn nuôi, thú y toàn quốc.", "donvi_raw": "NNS", "phantich": "NA", "dexuat": "TT NNS xây dựng phần mềm VNPT AniMind thực hiện đúng theo chiến lược không trùng với các chức năng của Nền tảng quốc gia", "uutien": "Thấp", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["NNS"]}, {"id": 54, "nhom": "B", "stt": "38", "ten": "Nền tảng quốc gia về trồng trọt và bảo vệ thực vật", "muctieu": "Nền tảng dùng chung phục vụ quản lý nhà nước, chỉ đạo điều hành, kết nối, chia sẻ dữ liệu và hỗ trợ sản xuất, kinh doanh trong lĩnh vực trồng trọt và bảo vệ thực vật trên phạm vi toàn quốc. Nền tảng nhằm chuẩn hóa, quản lý và chia sẻ dữ liệu chuyên ngành; kết nối liên thông giữa cơ quan trung ương, địa phương, người dân, doanh nghiệp và các cơ sở dữ liệu quốc gia; kết nối, chia sẻ dữ liệu với Hệ thống thông tin giải quyết thủ tục hành chính của Bộ Nông nghiệp và Môi trường; cung cấp dịch vụ dùng chung, hỗ trợ cảnh báo, dự báo, truy xuất nguồn gốc và phát triển hệ sinh thái số ngành trồng trọt và bảo vệ thực vật theo hướng mở, liên thông và dùng chung dữ liệu", "coquan": "Bộ Nông nghiệp và Môi trường", "thoigian": "Năm 2025 - 2030", "spdv": "Tập trung ngành trồng trọt/BVTV toàn quốc.", "donvi_raw": "NNS", "phantich": "Tỉnh có thể triển khai vùng trồng, số hóa nông hộ, truy xuất, cảnh báo địa phương nhưng phải bám chuẩn/kết nối nền tảng quốc gia.", "dexuat": "Rà soát sản phẩm vùng trồng, định vị là lớp triển khai địa phương và dữ liệu chuyên biệt kết nối quốc gia.", "uutien": "Rất cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["NNS"]}, {"id": 55, "nhom": "B", "stt": "40", "ten": "Nền tảng AI hỗ trợ ứng phó với biến đổi khí hậu", "muctieu": "Hệ thống các phần mềm ứng dụng AI dùng chung, hỗ trợ các nghiệp vụ về ứng phó với biến đổi khí hậu.\n- Bộ công cụ và dữ liệu kèm theo hướng dẫn cho phép nhiều đơn vị hoạt động dự báo, cảnh báo trong lĩnh vực khí tượng thủy văn có thể tiếp tục tùy biến, phát triển và đào tạo AI để phù hợp với công việc thực tế.", "coquan": "Bộ Nông nghiệp và Môi trường", "thoigian": "Năm 2026 - 2030", "spdv": "NA", "donvi_raw": "GEO", "phantich": "Không ảnh hưởng, hiện VNPT-IT chưa phát triển nền tảng AI tương tự", "dexuat": "Cập nhật chính sách, nghiên cứu các định hướng, đặt hàng của khách hàng trong các bài toán về AI trong lĩnh vực biến đổi khí hậu", "uutien": "Thấp", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["GEO"]}, {"id": 56, "nhom": "B", "stt": "41", "ten": "Nền tảng AI hỗ trợ bảo vệ môi trường", "muctieu": "Hệ thống các phần mềm ứng dụng AI dùng chung, hỗ trợ các nghiệp vụ về bảo vệ môi trường.\n- Bộ công cụ và dữ liệu kèm theo hướng dẫn cho phép nhiều đơn vị hoạt động dự báo, cảnh báo trong lĩnh vực khí tượng thủy văn có thể tiếp tục tùy biến, phát triển và đào tạo AI để phù hợp với công việc thực tế.", "coquan": "Bộ Nông nghiệp và Môi trường", "thoigian": "Năm 2026 - 2030", "spdv": "NA", "donvi_raw": "GEO", "phantich": "Không ảnh hưởng, hiện VNPT-IT chưa phát triển nền tảng AI tương tự", "dexuat": "Cập nhật chính sách, nghiên cứu các định hướng, đặt hàng của khách hàng trong các bài toán về AI trong lĩnh vực bảo vệ môi trường", "uutien": "Thấp", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["GEO"]}, {"id": 57, "nhom": "B", "stt": "42", "ten": "Nền tảng quản lý thương mại và thị trường", "muctieu": "Nền tảng quản lý thương mại và thị trường       \n - Tích hợp dữ liệu từ các sở giao dịch hàng hóa.\n- Tích hợp dữ liệu xử phạt vi phạm hành chính của lực lượng quản lý thị trường.\n- Tích hợp dữ liệu về hạ tầng thương mại như xăng dầu, chợ, trung tâm thương mại, outlet...\n- Tích hợp dữ liệu về truy xuất nguồn gốc hàng hóa thuộc phạm vi quản lý của Bộ Công Thương.\n- Cung cấp thông tin toàn diện, đa chiều, hỗ trợ ra quyết định về định hướng chính sách, chỉ đạo điều hành, nghiệp vụ tài chính của các bộ, ngành, địa phương.\n- Hình thành các dịch vụ sử dụng cho người dùng địa phương, doanh nghiệp, cho phép tùy biến theo nhu cầu sử dụng và tương tác với nền tảng trong lĩnh vực thương mại và thị trường.", "coquan": "Bộ Công Thương", "thoigian": "Năm 2025 - 2026", "spdv": "CSDL công thương", "donvi_raw": "MDS", "phantich": "Giải pháp CSDL công thương các nghiệp vụ quản lý chợ/hạ tầng thương mại VNPT đang triển khai tại địa phương, cần đảm bảo kết nối/tích hợp dữ liệu với nền tảng quốc gia.", "dexuat": "Chuẩn hóa kết nối, tích hợp dữ liệu (chợ, TTTM, xăng dầu, truy xuất nguồn gốc) với nền tảng quốc gia khi vận hành", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["MDS"]}, {"id": 58, "nhom": "B", "stt": "43", "ten": "Nền tảng số pháp luật Việt Nam", "muctieu": "Quản lý xây dựng VBQPPL, AI hỗ trợ dự thảo, tham vấn, thẩm định, ban hành, lưu trữ, theo dõi thi hành, rà soát hệ thống hóa.", "coquan": "Bộ Tư pháp", "thoigian": "Năm 2026 - 2030", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 59, "nhom": "B", "stt": "44", "ten": "Nền tảng quản lý CSDL quốc gia về di sản văn hóa", "muctieu": "Nền tảng số được triển khai tập trung, dùng chung thống nhất trên phạm vi toàn quốc, phục vụ quản lý, bảo vệ và phát huy giá trị di sản văn hóa trên môi trường số (trừ di sản văn hóa hạn chế khai thác, sử dụng theo quy định tại khoản 3 Điều 88 Luật Di sản văn hóa năm 2024 và Điều 25 Thông tư số 04/2025/TTBVHTTDL của Bộ trưởng Bộ Văn hóa, Thể thao và Du lịch), bao gồm:\n- Quản lý, cập nhật, lưu trữ, tích hợp, chuẩn hóa và chia sẻ dữ liệu di sản văn hóa trên môi trường số.\n- Kết nối, liên thông, đồng bộ dữ liệu giữa Bộ Văn hóa, Thể thao và Du lịch với các bộ, ngành, địa phương và cơ quan, đơn vị có liên quan.\n- Cung cấp các dịch vụ dùng chung, tiêu chuẩn dữ liệu dùng chung và các công cụ hỗ trợ quản lý trong lĩnh vực di sản văn hóa.\n- Hỗ trợ khai thác, chia sẻ dữ liệu phục vụ công tác quản lý nhà nước, nghiên cứu khoa học, giáo dục, quảng bá văn hóa và phát triển du lịch theo quy định của pháp luật.\n- Tạo môi trường số dùng chung thống nhất trong lĩnh vực di sản văn hóa, hạn chế đầu tư phân tán, trùng lặp; nâng cao hiệu quả kết nối, chia sẻ và khai thác dữ liệu di sản văn hóa trên phạm vi toàn quốc.", "coquan": "Bộ Văn hóa, Thể thao và Du lịch", "thoigian": "Năm 2025 - 2030", "spdv": "VHTTDL", "donvi_raw": "MDS", "phantich": "Nền tảng tập trung quản lý dữ liệu di sản văn hóa toàn quốc; các giải pháp số hóa di sản, bảo tàng số VNPT triển khai tại địa phương cần định vị là lớp số hóa, cập nhật dữ liệu, kết nối với nền tảng quốc gia.", "dexuat": "- Đánh giá hợp tác với bên thứ 3 để triển khai các dịch vụ về số hóa di sản, số hóa điểm đến....\n- Chuẩn hóa kết nối, sẵn sàng đồng bộ dữ liệu với nền tảng quốc gia khi vận hành.\n", "uutien": "Cao", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["MDS"]}, {"id": 60, "nhom": "B", "stt": "45", "ten": "Nền tảng Quản trị và Kinh doanh du lịch", "muctieu": "Nền tảng được xây dựng nhằm kiến tạo hạ tầng dữ liệu lõi của ngành Du lịch Việt Nam, chuyển đổi phương thức quản lý từ hành chính sang quản trị bằng dữ liệu, chuyển đổi hoạt động kinh doanh từ phân tán sang kết nối số, qua đó nâng cao chất lượng dịch vụ, trải nghiệm du khách và năng lực cạnh tranh của điểm đến Việt Nam.", "coquan": "Bộ Văn hóa, Thể thao và Du lịch", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": "MDS", "phantich": "VNPT chưa tham gia phát triển nền tảng", "dexuat": "VNPT chưa tham gia phát triển nền tảng", "uutien": "Thấp", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["MDS"]}, {"id": 61, "nhom": "B", "stt": "46", "ten": "Nền tảng/CSDL dân tộc", "muctieu": "Tạo môi trường nghiệp vụ số dùng chung phục vụ quản lý nhà nước về công tác dân tộc trên phạm vi toàn quốc; cung cấp công cụ quản lý, cập nhật, khai thác, tổng hợp, phân tích dữ liệu về dân tộc, địa bàn vùng đồng bào dân tộc thiểu số và miền núi, chính sách dân tộc, chương trình, dự án, chỉ tiêu phát triển kinh tế - xã hội và kết quả thực hiện chính sách dân tộc; hỗ trợ lãnh đạo, chỉ đạo, điều hành, theo dõi và đánh giá chính sách dân tộc; kết nối, chia sẻ dữ liệu với các hệ thống thông tin, cơ sở dữ liệu có liên quan theo quy định.", "coquan": "Bộ Dân tộc và Tôn giáo", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 62, "nhom": "B", "stt": "47", "ten": "Nền tảng/CSDL tôn giáo", "muctieu": "Tạo môi trường nghiệp vụ số dùng chung phục vụ quản lý nhà nước về tín ngưỡng, tôn giáo; quản lý, cập nhật, kiểm tra, khai thác, tổng hợp, báo cáo dữ liệu về tổ chức tôn giáo, tổ chức tôn giáo trực thuộc, cơ sở tôn giáo, cơ sở tín ngưỡng, chức sắc, chức việc, nhà tu hành, hoạt động tín ngưỡng, tôn giáo và thủ tục hành chính có liên quan; hỗ trợ giải quyết thủ tục hành chính, lãnh đạo, chỉ đạo và theo dõi tình hình tín ngưỡng, tôn giáo; kết nối, chia sẻ dữ liệu với các hệ thống thông tin, cơ sở dữ liệu có liên quan.", "coquan": "Bộ Dân tộc và Tôn giáo", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 63, "nhom": "B", "stt": "48", "ten": "Nền tảng số quản lý khoa học, công nghệ và đổi mới sáng tạo quốc gia", "muctieu": "Xây dựng Nền tảng số quản lý khoa học, công nghệ và đổi mới sáng tạo quốc gia theo mô hình quản trị tập trung, tích hợp, liên thông, chia sẻ thống nhất, làm nền tảng số dùng chung phục vụ: Quản lý, theo dõi, điều phối và tổng hợp nguồn lực tài chính trên phạm vi cả nước đối với các nhiệm vụ khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số, đồng thời hỗ trợ tạo lập, cập nhật, tích hợp, tổng hợp, phân tích và khai thác dữ liệu phục vụ chỉ đạo, điều hành trong lĩnh vực khoa học, công nghệ và đổi mới sáng tạo. Cụ thể, nền tảng tập trung vào các nhóm chức năng chính sau:\n- Quản trị định danh, tổ chức và phân quyền;\n- Tạo lập, cập nhật thông tin, dữ liệu;\n- Quản lý một số nghiệp vụ trọng tâm, như: Quản lý phân bổ ngân sách lĩnh vực khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số.\n- Tích hợp, chia sẻ và điều phối dữ liệu giữa các hệ thống liên quan;\n- Tổng hợp báo cáo, phân tích và hỗ trợ điều hành.", "coquan": "Bộ Khoa học và Công nghệ", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 64, "nhom": "B", "stt": "49", "ten": "Hệ thống thông tin quốc gia về khoa học, công nghệ và đổi mới sáng tạo", "muctieu": "Nền tảng thống nhất, dùng chung trên toàn quốc phục vụ thu thập, lưu trữ, chia sẻ, khai thác thông tin về khoa học, công nghệ và đổi mới sáng tạo.\nCác thông tin dùng chung gồm:\n- Thông tin về tổ chức khoa học, công nghệ;\n- Thông tin về nhân lực khoa học, công nghệ;\n- Thông tin về nhiệm vụ khoa học, công nghệ;\n- Thông tin về công bố khoa học;\n- Thông tin thống kê khoa học, công nghệ, đổi mới sáng tạo.", "coquan": "Bộ Khoa học và Công nghệ", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 65, "nhom": "B", "stt": "50", "ten": "Hệ thống thanh toán điện tử liên ngân hàng", "muctieu": "Xử lý, quyết toán giao dịch thanh toán điện tử liên ngân hàng, điều phối thanh khoản, hỗ trợ chính sách tiền tệ.", "coquan": "Ngân hàng Nhà nước Việt Nam", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 66, "nhom": "B", "stt": "39", "ten": "Nền tảng AI hỗ trợ phân tích, cảnh báo thiên tai", "muctieu": "- Hệ thống các phần mềm ứng dụng AI dùng chung, hỗ trợ các đơn vị dự báo, cảnh báo khí tượng thủy văn và các đơn vị khác có liên quan phục vụ cảnh báo thiên tai (hệ thống được liên tục xây dựng, phát triển, ưu tiên thực hiện đối với các loại hình thiên tai: bão, mưa lớn, lũ quét, sạt lở đất);\n- Bộ công cụ và dữ liệu kèm theo hướng dẫn cho phép nhiều đơn vị hoạt động dự báo, cảnh báo trong lĩnh vực khí tượng thủy văn có thể tiếp tục tùy biến, phát triển và đào tạo AI để phù hợp với công việc thực tế.", "coquan": "Bộ Nông nghiệp và Môi trường", "thoigian": "Năm 2026 - 2030", "spdv": "NA", "donvi_raw": "GEO", "phantich": "Không ảnh hưởng, hiện VNPT-IT chưa phát triển nền tảng AI tương tự", "dexuat": "Cập nhật chính sách, nghiên cứu các định hướng, đặt hàng của khách hàng trong các bài toán về AI trong lĩnh vực cảnh báo thiên tai", "uutien": "Thấp", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["GEO"]}, {"id": 67, "nhom": "B", "stt": "51", "ten": "Hệ thống thông tin tín dụng quốc gia", "muctieu": "Thu thập, xử lý, lưu trữ, phân tích và cung cấp thông tin tín dụng toàn quốc.", "coquan": "Ngân hàng Nhà nước Việt Nam", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 68, "nhom": "B", "stt": "52", "ten": "Hệ thống thông tin ngân sách và kế toán nhà nước số (VDBAS)", "muctieu": "Thông tin tài chính, ngân sách; nhập/phân bổ/điều chỉnh dự toán; thu/chi NSNN trực tuyến; kết nối ngân hàng/kho bạc.", "coquan": "Bộ Tài chính", "thoigian": "Năm 2027", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 69, "nhom": "B", "stt": "53", "ten": "Nền tảng/CSDL chuyên ngành quản lý chứng khoán", "muctieu": "Kho dữ liệu chuyên ngành chứng khoán, phục vụ quản lý/giám sát UBCKNN và thị trường.", "coquan": "Bộ Tài chính", "thoigian": "Năm 2026", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 70, "nhom": "B", "stt": "54", "ten": "Nền tảng quản lý hệ thống giao thông thông minh đường bộ", "muctieu": "Nền tảng tập trung, thống nhất quản lý hệ thống giao thông thông minh đường bộ trên toàn quốc. Cung cấp môi trường dùng chung để kết nối, tích hợp và chia sẻ dữ liệu giao thông thời gian thực từ các hệ thống quản lý điều hành giao thông tuyến đường cao tốc, hệ thống thu phí điện tử không dừng, công trình kiểm soát tải trọng xe,... Hỗ trợ cơ quan quản lý nhà nước ra quyết định, phân luồng, giám sát an toàn và cung cấp thông tin giao thông cho người dân, doanh nghiệp.", "coquan": "Bộ Xây dựng", "thoigian": "Năm 2027 - 2030", "spdv": "NA", "donvi_raw": null, "phantich": "Hiện tại VNPT-IT chưa phát triển nền tảng quản lý tập trung hệ thống giao thông đường bộ.   ", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 71, "nhom": "B", "stt": "55", "ten": "Nền tảng số công tác tiếp công dân, xử lý đơn giải quyết khiếu nại, tố cáo", "muctieu": "Nền tảng tập trung thống nhất được triển khai phục vụ công tác tiếp công dân, xử lý đơn, giải quyết khiếu nại, tố cáo, kiến nghị, phản ánh; hình thành cơ sở dữ liệu tập trung trong lĩnh vực này; hỗ trợ quản lý, theo dõi, tổng hợp, phân tích, cảnh báo, chỉ đạo, điều hành từ trung ương đến địa phương; góp phần nâng cao chất lượng, hiệu quả tiếp công dân, xử lý đơn và giải quyết khiếu nại, tố cáo. Nền tảng cung cấp công cụ để thống nhất sử dụng xuyên suốt từ trung ương đến địa phương, phân cấp xử lý đến từng cán bộ có liên quan.", "coquan": "Thanh tra Chính phủ", "thoigian": "Năm 2026 - 2030", "spdv": "Dự án bên Thanh tra chính phủ", "donvi_raw": "DAS", "phantich": "Thực hiện theo dạng dự án triển khai tập trung.\nẢnh hưởng trực tiếp tới đơn vị vì DAS đang chủ trì làm việc với Thanh tra Chính phủ\n", "dexuat": "Ban KDGP, trung tâm DAS cần làm việc với Thanh tra CP để nắm bắt cơ hội triển khai dự án", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 72, "nhom": "B", "stt": "56", "ten": "Nền tảng số công tác thanh tra", "muctieu": "Nền tảng tập trung thống nhất được triển khai phục vụ toàn bộ quy trình nghiệp vụ thanh tra, bao gồm quản lý công tác trước thanh tra, trong thanh tra (gồm cả “Thanh tra điện tử”), sau thanh tra; quản lý đoàn thanh tra; hồ sơ, tài liệu, kết luận thanh tra; theo dõi, đôn đốc, xử lý sau thanh tra; báo cáo, thống kê; kết nối dữ liệu phục vụ giám sát, phân tích và hỗ trợ công tác lãnh đạo, chỉ đạo, điều hành. Nền tảng cung cấp công cụ để thống nhất sử dụng xuyên suốt từ trung ương đến địa phương, phân cấp xử lý đến từng cán bộ có liên quan.", "coquan": "Thanh tra Chính phủ", "thoigian": "Năm 2027 - 2030", "spdv": "Dự án bên Thanh tra chính phủ", "donvi_raw": "DAS", "phantich": "Thực hiện theo dạng dự án triển khai tập trung.\nẢnh hưởng trực tiếp tới đơn vị vì DAS đang chủ trì làm việc với Thanh tra Chính phủ\n", "dexuat": "Ban KDGP, trung tâm DAS cần làm việc với Thanh tra CP để nắm bắt cơ hội triển khai dự án", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 73, "nhom": "B", "stt": "57", "ten": "Nền tảng số công tác kiểm soát tài sản, thu nhập", "muctieu": "Nền tảng tập trung thống nhất được triển khai phục vụ quản lý, cập nhật, tổng hợp, khai thác, xác minh, kết nối, chia sẻ dữ liệu về kiểm soát tài sản, thu nhập; hỗ trợ việc kê khai, công khai, theo dõi, xác minh tài sản, thu nhập của người có nghĩa vụ kê khai theo quy định của pháp luật; đồng thời phục vụ công tác quản lý nhà nước về phòng, chống tham nhũng, kiểm soát tài sản, thu nhập trong phạm vi cả nước. Nền tảng cung cấp công cụ để thống nhất sử dụng xuyên suốt từ trung ương đến địa phương, phân cấp xử lý đến từng cán bộ có liên quan.", "coquan": "Thanh tra Chính phủ", "thoigian": "Năm 2027 - 2030", "spdv": "Dự án bên Thanh tra chính phủ", "donvi_raw": "DAS", "phantich": "Thực hiện theo dạng dự án triển khai tập trung.\nẢnh hưởng trực tiếp tới đơn vị vì DAS đang chủ trì làm việc với Thanh tra Chính phủ\n", "dexuat": "Ban KDGP, trung tâm DAS cần làm việc với Thanh tra CP để nắm bắt cơ hội triển khai dự án", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 74, "nhom": "B", "stt": "58", "ten": "Nền tảng số công tác phòng, chống tham nhũng, lãng phí, tiêu cực", "muctieu": "Nền tảng tập trung thống nhất được triển khai phục vụ chuyển đổi số toàn diện công tác phòng, chống tham nhũng, lãng phí, tiêu cực (PCTNLPTC); số hóa quy trình và hệ thống hóa, cập nhật, lưu trữ, bảo vệ và cung cấp chính xác, đầy đủ, kịp thời dữ liệu về tài sản, thu nhập, hoạt động doanh nghiệp và các thông tin khác liên quan đến PCTNLPTC; góp phần phòng ngừa, phát hiện và xử lý hiệu quả tham nhũng, lãng phí và tiêu cực. Nền tảng cung cấp công cụ để thống nhất sử dụng xuyên suốt từ trung ương đến địa phương, phân cấp xử lý đến từng cán bộ có liên quan", "coquan": "Thanh tra Chính phủ", "thoigian": "Năm 2027 - 2030", "spdv": "Dự án bên Thanh tra chính phủ", "donvi_raw": "DAS", "phantich": "Thực hiện theo dạng dự án triển khai tập trung.\nẢnh hưởng trực tiếp tới đơn vị vì DAS đang chủ trì làm việc với Thanh tra Chính phủ\n", "dexuat": "Ban KDGP, trung tâm DAS cần làm việc với Thanh tra CP để nắm bắt cơ hội triển khai dự án", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 75, "nhom": "B", "stt": "59", "ten": "Nền tảng số công tác thực hiện trách nhiệm giải trình", "muctieu": "Nền tảng tập trung thống nhất được triển khai phục vụ quản lý, cập nhật, theo dõi, tổng hợp, khai thác, phân tích dữ liệu về thực hiện trách nhiệm giải trình trong hoạt động công vụ của cơ quan, tổ chức, đơn vị, cá nhân; hỗ trợ theo dõi, giám sát, thanh tra, kiểm tra việc thực hiện trách nhiệm giải trình của cơ quan, tổ chức, đơn vị. Nền tảng cung cấp công cụ để thống nhất sử dụng xuyên suốt từ trung ương đến địa phương, phân cấp xử lý đến từng cán bộ có liên quan.", "coquan": "Thanh tra Chính phủ", "thoigian": "Năm 2027 - 2030", "spdv": "Dự án bên Thanh tra chính phủ", "donvi_raw": "DAS", "phantich": "Thực hiện theo dạng dự án triển khai tập trung.\nẢnh hưởng trực tiếp tới đơn vị vì DAS đang chủ trì làm việc với Thanh tra Chính phủ\n", "dexuat": "Ban KDGP, trung tâm DAS cần làm việc với Thanh tra CP để nắm bắt cơ hội triển khai dự án", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 76, "nhom": "B", "stt": "60", "ten": "Nền tảng phát thanh số quốc gia", "muctieu": "Xây dựng nền tảng phát thanh số quốc gia trực tuyến cung cấp đầy đủ các kênh phát thanh của Đài Tiếng nói Việt Nam và các kênh phát thanh của các đài phát thanh các tỉnh, thành phố tại Việt Nam. Nền tảng phát thanh số quốc gia được triển khai sâu rộng trên toàn quốc giúp công chúng có thể nghe, nghe lại tất cả các kênh phát thanh tại Việt Nam mọi lúc, mọi nơi, kể cả đối với thính giả, kiều bào ở nước ngoài, ứng dụng công nghệ mới, hiện đại để xây dựng nền tảng phát thanh số chuyên nghiệp, hiện đại, tăng cao khả năng tương tác, có khả năng ứng dụng trí tuệ nhân tạo AI, lưu trữ dài lâu, tạo dữ liệu BigData phát thanh, cung cấp khả năng ứng dụng công nghệ hiện đại, tìm kiếm thông minh, gợi ý các chương trình yêu thích cho thính giả giúp nâng cao trải nghiệm người dùng.", "coquan": "Đài Tiếng nói Việt Nam", "thoigian": "Năm 2027 - 2028", "spdv": "VNPT ICS", "donvi_raw": "DAS", "phantich": "Hệ thống VNPT ICS sẵn sàng kết nối với hệ thống thông tin nguồn quốc gia để truyền thanh cơ sở", "dexuat": "Chuẩn hóa kết nối, tích hợp dữ liệu  với nền tảng quốc gia khi vận hành\n", "uutien": "Trung bình", "chuyenquan": null, "khong_ap_dung": false, "khong_do_vnpt": false, "donvi_list": ["DAS"]}, {"id": 77, "nhom": "B", "stt": "61", "ten": "Nền tảng truyền hình số trực tuyến quốc gia VTVGo", "muctieu": "Nền tảng truyền hình số quốc gia dùng chung cho Đài Truyền hình Việt Nam và tất cả các Đài truyền hình từ trung ương và địa phương phát trên Internet.", "coquan": "Đài Truyền hình Việt Nam", "thoigian": "Đã vận hành", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}, {"id": 78, "nhom": "B", "stt": "62", "ten": "Nền tảng dữ liệu đo lường hành vi khán giả xem truyền hình - VTV Big Data và VTV Rating", "muctieu": "Nền tảng dùng chung phục vụ đo lường hành vi khán giả xem truyền hình cho tất cả các kênh truyền hình tại Việt Nam.\nCác cơ quan Đài truyền hình tại trung ương và địa phương được sử dụng chung để nắm bắt được hành vi và số liệu của người xem truyền hình do các Đài truyền hình cung cấp.\nCác cơ quan nhà nước tại trung ương và địa phương khai thác thông tin phục vụ quản lý nhà nước.", "coquan": "Đài Truyền hình Việt Nam", "thoigian": "Đã vận hành", "spdv": "NA", "donvi_raw": null, "phantich": "NA", "dexuat": "NA", "uutien": null, "chuyenquan": null, "khong_ap_dung": true, "khong_do_vnpt": false, "donvi_list": []}];
+</script>
+<script>
+const PRI_COLOR = { 'Rất cao':'#D6455A','Cao':'#F0983F','Trung bình':'#E8B93A','Thấp':'#8FA0B3','Không áp dụng':'#C7D0DA' };
+const MOC_2026 = new Set(['01/7/2026','Đã vận hành','Năm 2026','Năm 2025 - 2026']); // mốc "phải hoàn thành trong 2026" — đối chiếu với bộ lọc Excel gốc
+function is2026Target(thoigian){ return !!thoigian && MOC_2026.has(thoigian); }
+const PRI_CLASS = { 'Rất cao':'rc','Cao':'cao','Trung bình':'tb','Thấp':'thap','Không áp dụng':'na' };
+const PRI_ORDER_GLOBAL = ['Rất cao','Cao','Trung bình','Thấp','Không áp dụng'];
+
+function priBadge(r){
+  const p = r.khong_ap_dung ? 'Không áp dụng' : r.uutien;
+  return `<span class="badge-pri ${PRI_CLASS[p]}">${p}</span>`;
+}
+function esc(s){ return (s===null||s===undefined) ? '' : String(s).replace(/</g,'&lt;'); }
+
+/* ---------- TAB SWITCH ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+/* ---------- SIGNATURE STRIP (Tổng quan) ---------- */
+(function renderStrip(){
+  const wrap = document.getElementById('strip');
+  RECORDS.forEach(r=>{
+    const p = r.khong_ap_dung ? 'Không áp dụng' : r.uutien;
+    const d = document.createElement('div');
+    d.className='cell';
+    d.style.background = PRI_COLOR[p];
+    d.title = `${r.ten} — ${p}`;
+    wrap.appendChild(d);
+  });
+})();
+
+/* ---------- KPI ---------- */
+document.getElementById('kpi-total').textContent = AGG.total;
+document.getElementById('kpi-a').textContent = AGG.groupA;
+document.getElementById('kpi-b').textContent = AGG.groupB;
+document.getElementById('kpi-theo-doi').textContent = AGG.can_theo_doi;
+document.getElementById('kpi-rc').textContent = AGG.pri_counts['Rất cao'];
+
+/* ---------- CHART: Ưu tiên x Nhóm (stacked) ---------- */
+new Chart(document.getElementById('chartPriNhom'), {
+  type:'bar',
+  data:{
+    labels:['Rất cao','Cao','Trung bình','Thấp','Không áp dụng'],
+    datasets:[
+      {label:'Nhóm A (liên ngành)', backgroundColor:'#0067B1',
+       data:['Rất cao','Cao','Trung bình','Thấp','Không áp dụng'].map(k=>AGG.pri_nhom[k].A)},
+      {label:'Nhóm B (chuyên ngành)', backgroundColor:'#F7941E',
+       data:['Rất cao','Cao','Trung bình','Thấp','Không áp dụng'].map(k=>AGG.pri_nhom[k].B)}
+    ]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}},
+    scales:{ x:{stacked:true, grid:{display:false}}, y:{stacked:true, beginAtZero:true, ticks:{precision:0}} }
+  }
+});
+
+/* ---------- CHART: Phạm vi tác động (donut) ---------- */
+new Chart(document.getElementById('chartScope'), {
+  type:'doughnut',
+  data:{
+    labels:['Có SPDV — cần theo dõi','Không áp dụng — chưa có SPDV liên quan'],
+    datasets:[{data:[AGG.can_theo_doi, AGG.khong_ap_dung], backgroundColor:['#0067B1','#C7D0DA'], borderWidth:0}]
+  },
+  options:{
+    responsive:true, maintainAspectRatio:false, cutout:'68%',
+    plugins:{legend:{position:'bottom', labels:{boxWidth:10,font:{size:11}}}}
+  }
+});
+
+/* ---------- CHART: Đơn vị phụ trách ---------- */
+(function(){
+  const units = Object.keys(AGG.unit_counts);
+  new Chart(document.getElementById('chartUnit'), {
+    type:'bar',
+    data:{ labels:units, datasets:[{label:'Số nền tảng liên quan', data:units.map(u=>AGG.unit_counts[u]), backgroundColor:'#0067B1', borderRadius:4}] },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} }
+    }
+  });
+})();
+
+/* ---------- CHART: Cơ quan chủ quản (top 12) ---------- */
+(function(){
+  const entries = Object.entries(AGG.cq_counts).slice(0,12);
+  new Chart(document.getElementById('chartCoQuan'), {
+    type:'bar',
+    data:{ labels:entries.map(e=>e[0]), datasets:[{label:'Số nền tảng', data:entries.map(e=>e[1]), backgroundColor:'#F7941E', borderRadius:4}] },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}, ticks:{font:{size:10.5}}} }
+    }
+  });
+})();
+
+/* ---------- CHART: Timeline vận hành ---------- */
+(function(){
+  const entries = Object.entries(AGG.tg_counts);
+  new Chart(document.getElementById('chartTime'), {
+    type:'bar',
+    data:{ labels:entries.map(e=>e[0]), datasets:[{label:'Số nền tảng', data:entries.map(e=>e[1]), backgroundColor:entries.map(e=>e[0]==='Năm 2026'?'#D6455A':'#0067B1'), borderRadius:4}] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ x:{grid:{display:false}, ticks:{font:{size:10.5}, maxRotation:35, minRotation:35}}, y:{beginAtZero:true, ticks:{precision:0}} }
+    }
+  });
+})();
+
+/* ---------- CARD RENDER (Rất cao / Cao / Thấp) ---------- */
+function renderCards(containerId, list){
+  const el = document.getElementById(containerId);
+  el.innerHTML = list.map(r=>{
+    const cls = PRI_CLASS[r.uutien] || 'thap';
+    return `
+    <div class="pcard ${cls}">
+      <div class="pcard-head">
+        <div>
+          <h4>${esc(r.ten)}</h4>
+          <div class="meta-row">
+            <span class="chip nhom">Nhóm ${esc(r.nhom)}</span>
+            <span class="chip">${esc(r.coquan||'—')}</span>
+            <span class="chip">⏱ ${esc(r.thoigian||'Chưa rõ')}</span>
+            ${r.donvi_list.map(u=>`<span class="chip unit">${esc(u)}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="pcard-body">
+        <div class="pcard-block">
+          <h5>Phân tích ảnh hưởng</h5>
+          <p>${esc(r.phantich)||'—'}</p>
+        </div>
+        <div class="pcard-block">
+          <h5>Đề xuất hành động</h5>
+          <p>${esc(r.dexuat)||'—'}</p>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+renderCards('cards-rc', RECORDS.filter(r=>r.uutien==='Rất cao'));
+renderCards('cards-cao', RECORDS.filter(r=>r.uutien==='Cao'));
+
+/* ---------- THẤP: table đơn giản ---------- */
+(function(){
+  const el = document.getElementById('table-thap');
+  const list = RECORDS.filter(r=>r.uutien==='Thấp');
+  el.innerHTML = `<table><thead><tr><th>Nền tảng</th><th>Nhóm</th><th>Đơn vị</th><th>Cơ quan chủ quản</th><th>Lý do mức thấp / Ghi chú</th></tr></thead><tbody>
+  ${list.map(r=>`<tr><td><b>${esc(r.ten)}</b></td><td>${esc(r.nhom)}</td><td>${r.donvi_list.join(', ')||'—'}</td><td>${esc(r.coquan)}</td><td>${esc(r.phantich)||'—'}</td></tr>`).join('')}
+  </tbody></table>`;
+})();
+
+/* ---------- TRUNG BÌNH: filter + table ---------- */
+const tbAll = RECORDS.filter(r=>r.uutien==='Trung bình');
+function populateSelect(id, values){
+  const sel = document.getElementById(id);
+  [...new Set(values)].sort().forEach(v=>{
+    const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o);
+  });
+}
+populateSelect('f-nhom', tbAll.map(r=>r.nhom));
+populateSelect('f-coquan', tbAll.map(r=>r.coquan).filter(Boolean));
+populateSelect('f-donvi', tbAll.flatMap(r=>r.donvi_list));
+
+function renderTB(){
+  const fn = document.getElementById('f-nhom').value;
+  const fc = document.getElementById('f-coquan').value;
+  const fd = document.getElementById('f-donvi').value;
+  const hideNoVnpt = document.getElementById('f-hide-novnpt').checked;
+  const q = document.getElementById('f-search').value.trim().toLowerCase();
+
+  let list = tbAll.filter(r=>{
+    if(fn && r.nhom!==fn) return false;
+    if(fc && r.coquan!==fc) return false;
+    if(fd && !r.donvi_list.includes(fd)) return false;
+    if(hideNoVnpt && r.khong_do_vnpt) return false;
+    if(q && !r.ten.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('tb-count').textContent = `${list.length} / ${tbAll.length} nền tảng`;
+
+  const el = document.getElementById('table-tb');
+  el.innerHTML = `<table><thead><tr><th style="width:26px"></th><th>Nền tảng</th><th>Nhóm</th><th>Đơn vị</th><th>Cơ quan chủ quản</th><th>Loại</th></tr></thead><tbody>
+  ${list.map((r,i)=>{
+    const tag = r.khong_do_vnpt ? '<span class="chip" style="background:#EEF1F4">Không do VNPT triển khai</span>' : '<span class="chip" style="background:#E8F2FA;color:#0067B1;border-color:#CFE3F4">Cần theo dõi</span>';
+    return `<tr class="tb-row" data-idx="${r.id}">
+      <td><span class="expand-btn">▸</span></td>
+      <td><b>${esc(r.ten)}</b></td>
+      <td>${esc(r.nhom)}</td>
+      <td>${r.donvi_list.join(', ')||'—'}</td>
+      <td>${esc(r.coquan)||'—'}</td>
+      <td>${tag}</td>
+    </tr>
+    <tr class="row-detail" id="detail-${r.id}" style="display:none"><td></td><td colspan="5">
+      <b>Phân tích ảnh hưởng:</b> ${esc(r.phantich)||'—'}<br><br>
+      <b>Đề xuất hành động:</b> ${esc(r.dexuat)||'—'}
+    </td></tr>`;
+  }).join('')}
+  </tbody></table>`;
+
+  el.querySelectorAll('.tb-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const d = document.getElementById('detail-'+row.dataset.idx);
+      const btn = row.querySelector('.expand-btn');
+      const isOpen = d.style.display !== 'none';
+      d.style.display = isOpen ? 'none' : 'table-row';
+      btn.textContent = isOpen ? '▸' : '▾';
+    });
+  });
+}
+['f-nhom','f-coquan','f-donvi','f-hide-novnpt'].forEach(id=>document.getElementById(id).addEventListener('change', renderTB));
+document.getElementById('f-search').addEventListener('input', renderTB);
+renderTB();
+
+/* ---------- CHART: Đơn vị × Mức ưu tiên (stacked horizontal) ---------- */
+(function(){
+  const units = Object.keys(AGG.unit_counts);
+  const order = ['Rất cao','Cao','Trung bình','Thấp','Không áp dụng'];
+  new Chart(document.getElementById('chartUnitPriority'), {
+    type:'bar',
+    data:{
+      labels: units,
+      datasets: order.map(level=>({
+        label: level,
+        data: units.map(u=>AGG.unit_priority[u][level]),
+        backgroundColor: PRI_COLOR[level],
+        borderRadius: 3,
+        maxBarThickness: 22
+      }))
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ position:'bottom', labels:{boxWidth:10, font:{size:10.5}} } },
+      scales:{
+        x:{ stacked:true, beginAtZero:true, ticks:{precision:0} },
+        y:{ stacked:true, grid:{display:false} }
+      }
+    }
+  });
+})();
+
+/* ---------- BẢNG TỔNG HỢP THEO ĐƠN VỊ (đồng bộ với Excel) ---------- */
+(function(){
+  const el = document.getElementById('unit-summary-table');
+  const units = Object.keys(AGG.unit_counts);
+  const rows = units.map((u,idx)=>{
+    const cnt = AGG.unit_priority[u];
+    const total = AGG.unit_counts[u];
+    const urgent = RECORDS.filter(r=>r.donvi_list.includes(u) && is2026Target(r.thoigian)).length;
+    return `<tr class="usum-row" data-idx="${idx}" style="cursor:pointer">
+      <td><span class="expand-btn" style="margin-right:6px;">▸</span><b>${esc(u)}</b></td>
+      <td style="text-align:center">${total}</td>
+      <td style="text-align:center"><span class="badge-pri rc">${cnt['Rất cao']}</span></td>
+      <td style="text-align:center"><span class="badge-pri cao">${cnt['Cao']}</span></td>
+      <td style="text-align:center"><span class="badge-pri tb">${cnt['Trung bình']}</span></td>
+      <td style="text-align:center"><span class="badge-pri thap">${cnt['Thấp']}</span></td>
+      <td style="text-align:center"><span class="badge-pri na">${cnt['Không áp dụng']}</span></td>
+      <td style="text-align:center;${urgent>0?'color:#D6455A;font-weight:700':''}">${urgent}</td>
+    </tr>`;
+  }).join('');
+
+  // dòng chi tiết ẩn cho từng đơn vị: danh sách tên nền tảng nhóm theo mức
+  const detailRows = units.map((u,idx)=>{
+    const items = RECORDS.filter(r=>r.donvi_list.includes(u));
+    const byLevel = PRI_ORDER_GLOBAL.map(level=>{
+      const list = items.filter(r=>(r.khong_ap_dung?'Không áp dụng':r.uutien)===level);
+      if(list.length===0) return '';
+      return `<div style="margin-bottom:6px;"><span class="badge-pri ${PRI_CLASS[level]}" style="margin-right:6px;">${level}</span>${list.map(r=>esc(r.ten)).join('; ')}</div>`;
+    }).join('');
+    return `<tr class="usum-detail" id="usum-detail-${idx}" style="display:none;background:#FAFCFE;">
+      <td colspan="8" style="padding:12px 18px;font-size:12.5px;line-height:1.7;">${byLevel}</td>
+    </tr>`;
+  });
+  // ghép detail ngay sau mỗi row tương ứng
+  const rowsArr = rows.split('</tr>').filter(Boolean).map((r,i)=> r + '</tr>' + (detailRows[i]||''));
+
+  const sumCol = k => units.reduce((s,u)=>s+AGG.unit_priority[u][k],0);
+  const sumTotal = units.reduce((s,u)=>s+AGG.unit_counts[u],0);
+  const sumUrgent = units.reduce((s,u)=>s + RECORDS.filter(r=>r.donvi_list.includes(u) && is2026Target(r.thoigian)).length, 0);
+
+  el.innerHTML = `<table>
+    <thead><tr><th>Đơn vị phụ trách</th><th>Tổng số</th><th>Rất cao</th><th>Cao</th><th>Trung bình</th><th>Thấp</th><th>Không áp dụng</th><th>Cần xong Năm 2026</th></tr></thead>
+    <tbody>${rowsArr.join('')}
+      <tr style="background:var(--blue-light);font-weight:700;">
+        <td>TỔNG (lượt phân công — 1 nền tảng có thể do nhiều đơn vị)</td>
+        <td style="text-align:center">${sumTotal}</td>
+        <td style="text-align:center">${sumCol('Rất cao')}</td>
+        <td style="text-align:center">${sumCol('Cao')}</td>
+        <td style="text-align:center">${sumCol('Trung bình')}</td>
+        <td style="text-align:center">${sumCol('Thấp')}</td>
+        <td style="text-align:center">${sumCol('Không áp dụng')}</td>
+        <td style="text-align:center;color:#D6455A">${sumUrgent}</td>
+      </tr>
+    </tbody></table>`;
+
+  el.querySelectorAll('.usum-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const d = document.getElementById('usum-detail-'+row.dataset.idx);
+      const btn = row.querySelector('.expand-btn');
+      const isOpen = d.style.display !== 'none';
+      d.style.display = isOpen ? 'none' : 'table-row';
+      btn.textContent = isOpen ? '▸' : '▾';
+    });
+  });
+})();
+
+/* ---------- TRÁCH NHIỆM ĐƠN VỊ ---------- */
+const PRI_ORDER = ['Rất cao','Cao','Trung bình','Thấp','Không áp dụng'];
+const PRI_SHORT = { 'Rất cao':'Rất cao','Cao':'Cao','Trung bình':'T.bình','Thấp':'Thấp','Không áp dụng':'K.áp dụng' };
+
+(function(){
+  const el = document.getElementById('unit-grid');
+  const units = Object.keys(AGG.unit_counts);
+
+  el.innerHTML = units.map(u=>{
+    const cnt = AGG.unit_priority[u];
+    const total = AGG.unit_counts[u];
+
+    // thanh mini-bar tỷ lệ
+    const bar = PRI_ORDER.filter(k=>cnt[k]>0).map(k=>`<div style="width:${cnt[k]/total*100}%;background:${PRI_COLOR[k]}" title="${k}: ${cnt[k]}"></div>`).join('');
+
+    // hàng số liệu thống kê chi tiết theo từng mức
+    const stats = PRI_ORDER.map(k=>`
+      <div class="stat-chip" style="border:1px solid ${PRI_COLOR[k]}55;">
+        <div class="n" style="color:${PRI_COLOR[k]}">${cnt[k]}</div>
+        <div class="l">${PRI_SHORT[k]}</div>
+      </div>`).join('');
+
+    // danh sách nền tảng nhóm theo từng mức ưu tiên, kèm hạn xử lý — hiển thị đầy đủ chi tiết, không cần click
+    const items = RECORDS.filter(r=>r.donvi_list.includes(u));
+    const urgent2026 = items.filter(r=>is2026Target(r.thoigian)).length;
+    const groups = PRI_ORDER.map(level=>{
+      const list = items.filter(r => (r.khong_ap_dung ? 'Không áp dụng' : r.uutien) === level);
+      if(list.length===0) return '';
+      const rows = list.map(r=>{
+        const deadline = r.thoigian || 'Chưa rõ mốc';
+        const isUrgent = is2026Target(r.thoigian);
+        return `
+        <div class="unit-item-full">
+          <div class="uif-head">
+            <h5>${esc(r.ten)}</h5>
+            <div class="uif-chips">
+              <span class="chip nhom">Nhóm ${esc(r.nhom)}</span>
+              <span class="chip">${esc(r.coquan)||'—'}</span>
+              <span class="chip deadline ${isUrgent?'urgent':''}">⏱ ${esc(deadline)}</span>
+              </div>
+          </div>
+          <div class="uif-body">
+            <div><h6>Phân tích ảnh hưởng</h6><p>${esc(r.phantich)||'—'}</p></div>
+            <div><h6>Đề xuất hành động</h6><p>${esc(r.dexuat)||'—'}</p></div>
+          </div>
+        </div>`;
+      }).join('');
+      return `<div class="unit-group-label"><i style="background:${PRI_COLOR[level]}"></i>${level} (${list.length})</div>${rows}`;
+    }).join('');
+
+    // nội dung trọng tâm: cơ quan chủ quản chi phối + nền tảng cần xử lý gấp nhất
+    const agencyTally = {};
+    items.forEach(r=>{ if(r.coquan) agencyTally[r.coquan] = (agencyTally[r.coquan]||0)+1; });
+    const topAgencyEntry = Object.entries(agencyTally).sort((a,b)=>b[1]-a[1])[0];
+
+    const topItems = items.filter(r => r.uutien==='Rất cao' || r.uutien==='Cao');
+
+    let focusHtml = '<div class="focus-box"><div class="focus-title">🎯 Nội dung trọng tâm</div><ul>';
+    if(topItems.length>0){
+      focusHtml += `<li><b>${topItems.length} nền tảng cần xử lý gấp</b> (Rất cao/Cao): ${topItems.map(r=>esc(r.ten)).join('; ')}.</li>`;
+    } else {
+      focusHtml += `<li>Không có mục Rất cao/Cao — ưu tiên theo dõi định kỳ các mục Trung bình/Thấp.</li>`;
+    }
+    if(urgent2026>0){
+      focusHtml += `<li><b>${urgent2026}/${total} nền tảng</b> phải xử lý xong ngay trong <b>Năm 2026</b>.</li>`;
+    }
+    if(topAgencyEntry){
+      focusHtml += `<li>Cơ quan chủ quản chi phối chính: <b>${esc(topAgencyEntry[0])}</b> (${topAgencyEntry[1]}/${total} nền tảng).</li>`;
+    }
+    focusHtml += '</ul></div>';
+
+    return `<div class="unit-card">
+      <div class="unit-card-head"><h4>${esc(u)}</h4><span class="total">${total} nền tảng liên quan</span></div>
+      ${focusHtml}
+      <div class="mini-bar">${bar}</div>
+      <div class="unit-stats">${stats}</div>
+      <div class="unit-list">${groups}</div>
+    </div>`;
+  }).join('');
+
+})();
+
+/* ---------- TAB: HOÀN THÀNH 2026 (Cột F × Cột H) ---------- */
+(function(){
+  // Cột F chứa mốc 2026 (kể cả các khoảng như "2025 - 2026" hay "2026 - 2030"),
+  // loại "Đã vận hành" (đã xong, không còn là việc phải hoàn thành) và "Không áp dụng" (không có SPDV VNPT liên quan)
+  const DL2026 = RECORDS.filter(r => !r.khong_ap_dung && is2026Target(r.thoigian));
+
+  // gộp theo đơn vị phụ trách (1 nền tảng có thể do nhiều đơn vị cùng phụ trách)
+  const unitMap = {};
+  DL2026.forEach(r=>{
+    r.donvi_list.forEach(u=>{
+      if(!unitMap[u]) unitMap[u] = [];
+      unitMap[u].push(r);
+    });
+  });
+  const units = Object.keys(unitMap).sort((a,b)=>unitMap[b].length-unitMap[a].length);
+
+  // KPI
+  document.getElementById('kpi26-total').textContent = DL2026.length;
+  document.getElementById('kpi26-rccao').textContent = DL2026.filter(r=>r.uutien==='Rất cao'||r.uutien==='Cao').length;
+  document.getElementById('kpi26-units').textContent = units.length;
+  document.getElementById('kpi26-top').textContent = units.length ? `${units[0]} (${unitMap[units[0]].length})` : '—';
+
+  // Chart: số nền tảng theo đơn vị
+  new Chart(document.getElementById('chart2026Unit'), {
+    type:'bar',
+    data:{
+      labels: units,
+      datasets:[{ label:'Số nền tảng phải hoàn thành 2026', data: units.map(u=>unitMap[u].length), backgroundColor:'#D6455A', borderRadius:4 }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false}},
+      scales:{ x:{beginAtZero:true, ticks:{precision:0}}, y:{grid:{display:false}} }
+    }
+  });
+
+  // Bảng tổng hợp theo đơn vị
+  const elTable = document.getElementById('table-2026-summary');
+  const rows = units.map((u,idx)=>{
+    const list = unitMap[u];
+    const cnt = { 'Rất cao':0,'Cao':0,'Trung bình':0,'Thấp':0 };
+    list.forEach(r=>cnt[r.uutien] = (cnt[r.uutien]||0)+1);
+    return `<tr class="usum2026-row" data-idx="${idx}" style="cursor:pointer">
+      <td><span class="expand-btn" style="margin-right:6px;">▸</span><b>${esc(u)}</b></td>
+      <td style="text-align:center"><b>${list.length}</b></td>
+      <td style="text-align:center"><span class="badge-pri rc">${cnt['Rất cao']}</span></td>
+      <td style="text-align:center"><span class="badge-pri cao">${cnt['Cao']}</span></td>
+      <td style="text-align:center"><span class="badge-pri tb">${cnt['Trung bình']}</span></td>
+      <td style="text-align:center"><span class="badge-pri thap">${cnt['Thấp']}</span></td>
+    </tr>`;
+  }).join('');
+  const detailRows = units.map((u,idx)=>{
+    const list = unitMap[u];
+    const items = list.map(r=>`<div style="margin-bottom:6px;"><span class="badge-pri ${PRI_CLASS[r.uutien]}" style="margin-right:6px;">${esc(r.uutien)}</span><b>${esc(r.ten)}</b> <span style="color:var(--muted)">— ⏱ ${esc(r.thoigian)} · ${esc(r.coquan)||'—'}</span></div>`).join('');
+    return `<tr class="usum2026-detail" id="usum2026-detail-${idx}" style="display:none;background:#FAFCFE;">
+      <td colspan="6" style="padding:12px 18px;font-size:12.5px;line-height:1.7;">${items}</td>
+    </tr>`;
+  });
+  const rowsArr = rows.split('</tr>').filter(Boolean).map((r,i)=> r + '</tr>' + (detailRows[i]||''));
+  const sumTotal = DL2026.length;
+  const sumCol = k => DL2026.filter(r=>r.uutien===k).length;
+  elTable.innerHTML = `<table>
+    <thead><tr><th>Đơn vị phụ trách</th><th>Số nền tảng phải hoàn thành 2026</th><th>Rất cao</th><th>Cao</th><th>Trung bình</th><th>Thấp</th></tr></thead>
+    <tbody>${rowsArr.join('')}
+      <tr style="background:var(--blue-light);font-weight:700;">
+        <td>TỔNG (lượt phân công — 1 nền tảng có thể do nhiều đơn vị)</td>
+        <td style="text-align:center">${units.reduce((s,u)=>s+unitMap[u].length,0)}</td>
+        <td style="text-align:center" colspan="4">Số nền tảng duy nhất: ${sumTotal} (Rất cao: ${sumCol('Rất cao')}, Cao: ${sumCol('Cao')}, Trung bình: ${sumCol('Trung bình')}, Thấp: ${sumCol('Thấp')})</td>
+      </tr>
+    </tbody></table>`;
+  elTable.querySelectorAll('.usum2026-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const d = document.getElementById('usum2026-detail-'+row.dataset.idx);
+      const btn = row.querySelector('.expand-btn');
+      const isOpen = d.style.display !== 'none';
+      d.style.display = isOpen ? 'none' : 'table-row';
+      btn.textContent = isOpen ? '▸' : '▾';
+    });
+  });
+
+  // Danh sách chi tiết theo đơn vị (đề xuất hành động cụ thể)
+  const elList = document.getElementById('list-2026-detail');
+  elList.innerHTML = units.map(u=>{
+    const list = unitMap[u].slice().sort((a,b)=>PRI_ORDER_GLOBAL.indexOf(a.uutien)-PRI_ORDER_GLOBAL.indexOf(b.uutien));
+    const rowsHtml = list.map(r=>`
+      <div class="unit-item-full">
+        <div class="uif-head">
+          <h5>${esc(r.ten)}</h5>
+          <div class="uif-chips">
+            <span class="badge-pri ${PRI_CLASS[r.uutien]}">${esc(r.uutien)}</span>
+            <span class="chip nhom">Nhóm ${esc(r.nhom)}</span>
+            <span class="chip">${esc(r.coquan)||'—'}</span>
+            <span class="chip deadline urgent">⏱ ${esc(r.thoigian)}</span>
+          </div>
+        </div>
+        <div class="uif-body">
+          <div><h6>Phân tích ảnh hưởng</h6><p>${esc(r.phantich)||'—'}</p></div>
+          <div><h6>Đề xuất hành động cần hoàn thành trong 2026</h6><p>${esc(r.dexuat)||'—'}</p></div>
+        </div>
+      </div>`).join('');
+    return `<div class="unit-card">
+      <div class="unit-card-head"><h4>${esc(u)}</h4><span class="total">${list.length} nền tảng phải hoàn thành trong Năm 2026</span></div>
+      <div class="unit-list">${rowsHtml}</div>
+    </div>`;
+  }).join('');
+})();
+
+</script>
+</body>
+</html>
